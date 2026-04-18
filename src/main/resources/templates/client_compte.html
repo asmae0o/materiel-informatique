@@ -9,8 +9,13 @@
         :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 0; }
 
-        .navbar { display: flex; justify-content: space-between; padding: 20px 5%; background: var(--surface); border-bottom: 1px solid rgba(0,0,0,0.04); }
-        .logo { font-weight: 700; color: var(--text-main); text-decoration: none; font-size: 18px;}
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 0 5%; height: 60px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .logo { font-size: 18px; font-weight: 700; color: var(--text-main); text-decoration: none; letter-spacing: -0.02em; }
+        .nav-links { display: flex; align-items: center; gap: 30px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--text-main); }
+        .nav-icons { display: flex; gap: 20px; align-items: center; }
+        .nav-icons a, .nav-icons button { color: var(--text-main); background: none; border: none; font-size: 18px; cursor: pointer; text-decoration: none; }
 
         .header { background: var(--surface); padding: 50px 5%; border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center;}
         .user-info { display: flex; align-items: center; gap: 25px; }
@@ -62,10 +67,7 @@
 </head>
 <body>
 
-<div class="navbar">
-    <a th:href="@{/catalogue}" class="logo">The Gallery</a>
-    <a th:href="@{/catalogue}" style="color: var(--text-main); font-size: 14px; text-decoration: none;">Back to Store</a>
-</div>
+<div th:replace="~{fragments/storefront_header :: storefrontHeader}"></div>
 
 <div class="header">
     <div class="user-info">

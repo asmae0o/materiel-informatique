@@ -21,6 +21,9 @@
 
         .btn-login { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 999px; font-size: 15px; font-weight: 500; cursor: pointer; transition: 0.2s; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px;}
         .btn-login:hover { background: #005bb5; }
+        .auth-link { margin-top: 16px; text-align: center; font-size: 14px; color: var(--text-muted); }
+        .auth-link a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .auth-link a:hover { text-decoration: underline; }
         .alert-error { color: #d93025; font-size: 14px; margin-bottom: 20px; text-align: center; background: #fff2f2; padding: 10px; border-radius: 8px;}
         .alert-success { color: #1e8e3e; font-size: 14px; margin-bottom: 20px; text-align: center; background: #e6f4ea; padding: 10px; border-radius: 8px;}
     </style>
@@ -33,6 +36,7 @@
 <div class="login-card">
     <div th:if="${param.error}" class="alert-error">Identifiants incorrects.</div>
     <div th:if="${param.logout}" class="alert-success">Déconnexion réussie.</div>
+    <div th:if="${param.registered}" class="alert-success">Compte cree avec succes. Connectez-vous.</div>
 
     <form th:action="@{/login}" method="post">
         <div class="form-group">
@@ -45,6 +49,8 @@
         </div>
         <button type="submit" class="btn-login">Sign In <i class="fas fa-arrow-right" style="font-size: 12px;"></i></button>
     </form>
+
+    <p class="auth-link">Nouveau client ? <a th:href="@{/signup}">Créer un compte</a></p>
 </div>
 </body>
 </html>

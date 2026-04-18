@@ -58,36 +58,12 @@
 
 <div th:if="${param.cartSuccess}" class="alert">Added to your bag.</div>
 
-<div class="navbar">
-    <a th:href="@{/catalogue}" class="logo">The Gallery</a>
-
-    <div class="nav-links">
-        <a th:href="@{/catalogue}" class="active">Store</a>
-    </div>
-
-    <div class="nav-icons">
-        <a sec:authorize="!hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')" th:href="@{/panier}"><i class="fas fa-shopping-bag"></i></a>
-
-        <div sec:authorize="!isAuthenticated()"><a th:href="@{/login}"><i class="far fa-user-circle"></i></a></div>
-
-        <div sec:authorize="isAuthenticated() and !hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')">
-            <a th:href="@{/compte}"><i class="fas fa-user-circle"></i></a>
-        </div>
-
-        <div sec:authorize="hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')" style="display: flex; gap: 15px;">
-            <a sec:authorize="hasAnyAuthority('GERANT', 'ROLE_GERANT')" th:href="@{/gerant/dashboard}" style="font-size: 14px; font-weight: 500; color: var(--primary);">Dashboard</a>
-            <a sec:authorize="hasAnyAuthority('ADMIN', 'ROLE_ADMIN')" th:href="@{/admin/dashboard}" style="font-size: 14px; font-weight: 500; color: #f59e0b;">Admin</a>
-            <form th:action="@{/logout}" method="post" style="margin: 0;">
-                <button type="submit"><i class="fas fa-sign-out-alt"></i></button>
-            </form>
-        </div>
-    </div>
-</div>
+<div th:replace="~{fragments/storefront_header :: storefrontHeader}"></div>
 
 <div class="hero-container">
     <div class="hero">
         <h1>Designed for<br>performance</h1>
-        <form th:action="@{/catalogue/search}" method="get" class="search-form">
+        <form th:action="@{/search}" method="get" class="search-form">
             <i class="fas fa-search"></i>
             <input type="text" name="keyword" class="search-input" placeholder="Search for products..." th:value="${param.keyword}">
         </form>
@@ -98,9 +74,9 @@
     <div class="sidebar">
         <h3>Product Categories</h3>
         <ul class="cat-list">
-            <li><a th:href="@{/catalogue}" class="active">All Products</a></li>
+            <li><a th:href="@{/}" class="active">All Products</a></li>
             <li th:each="cat : ${categories}">
-                <a th:href="@{'/catalogue/categorie/' + ${cat.id}}" th:text="${cat.nom}"></a>
+                <a th:href="@{'/categorie/' + ${cat.id}}" th:text="${cat.nom}"></a>
             </li>
         </ul>
     </div>

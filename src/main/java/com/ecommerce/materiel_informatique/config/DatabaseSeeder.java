@@ -8,9 +8,11 @@ import com.ecommerce.materiel_informatique.repository.MarqueRepository;
 import com.ecommerce.materiel_informatique.repository.ProduitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("h2")
 public class DatabaseSeeder implements CommandLineRunner {
 
     @Autowired private ProduitRepository produitRepository;

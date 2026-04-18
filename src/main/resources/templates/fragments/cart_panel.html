@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="cartPanelContent">
+    <div class="cart-panel-header">
+        <h3>Your Bag</h3>
+        <span th:text="${itemCount} + ' item(s)'"></span>
+    </div>
+
+    <div class="cart-panel-body" th:if="${itemCount > 0}">
+        <div th:each="item : ${cartItems}" class="cart-item-row">
+            <div>
+                <div class="cart-item-name" th:text="${item.produit.nom}">Product</div>
+                <div class="cart-item-meta" th:text="${item.produit.prix} + ' MAD x ' + ${item.quantite}"></div>
+            </div>
+
+            <div class="cart-item-actions">
+                <button type="button" th:attr="onclick=|window.CartPanel.update('min', ${item.produit.id})|">-</button>
+                <span th:text="${item.quantite}"></span>
+                <button type="button" th:attr="onclick=|window.CartPanel.update('add', ${item.produit.id})|">+</button>
+                <button type="button" class="remove" th:attr="onclick=|window.CartPanel.update('remove', ${item.produit.id})|">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cart-panel-empty" th:if="${itemCount == 0}">
+        <i class="fas fa-shopping-bag"></i>
+        <p>Your bag is empty.</p>
+    </div>
+
+    <div class="cart-panel-footer">
+        <div class="total-row">
+            <span>Total</span>
+            <strong th:text="${total} + ' MAD'"></strong>
+        </div>
+        <a th:href="@{/checkout}" class="checkout-btn" th:classappend="${itemCount == 0} ? ' disabled' : ''">Proceed to Checkout</a>
+    </div>
+</div>
+</body>
+</html>

@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -18,10 +17,10 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         // 1. Pages publiques accessibles à tous (Catalogue, Détails produit, Login)
-                        .requestMatchers("/", "/catalogue", "/catalogue/search", "/produit/**", "/login", "/css/**", "/js/**").permitAll()
+                    .requestMatchers("/", "/search", "/categorie/**", "/produit/**", "/cart/**", "/login", "/signup", "/css/**", "/js/**").permitAll()
 
                         // 2. Actions nécessitant d'être connecté (Panier, Checkout, Profil)
-                        .requestMatchers("/cart/**", "/panier", "/checkout", "/compte/**").authenticated()
+                        .requestMatchers("/panier", "/checkout", "/compte/**").authenticated()
 
                         // 3. Dashboards protégés par rôles
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -41,7 +40,7 @@ public class SecurityConfig {
                             } else if (roles.contains("ROLE_GERANT")) {
                                 response.sendRedirect("/gerant/dashboard");
                             } else {
-                                response.sendRedirect("/catalogue");
+                                response.sendRedirect("/");
                             }
                         })
                         .permitAll()
@@ -63,7 +62,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
+    public InMemoryUserDetailsManager userDetailsService() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
 
         manager.createUser(User.withUsername("admin")

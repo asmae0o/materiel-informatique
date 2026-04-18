@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Products | Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text-main); margin: 0; display: flex; height: 100vh; }
+
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column; }
+        .brand { padding: 0 30px; margin-bottom: 40px; }
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .nav-item i { width: 20px; font-size: 16px; }
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+        .bottom-nav { margin-top: auto; }
+
+        .main { flex: 1; padding: 0; overflow-y: auto; background: var(--surface); }
+        .topbar { display: flex; justify-content: space-between; padding: 20px 60px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .content-area { padding: 40px 60px; max-width: 1200px; }
+
+        .main-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+        .main-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0; }
+        .main-header p { color: var(--text-muted); font-size: 16px; margin: 0; max-width: 600px; }
+
+        .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: #005bb5; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 15px 10px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+        td { padding: 20px 10px; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; }
+        .prod-name { font-size: 15px; font-weight: 600; color: var(--text-main); margin: 0 0 4px 0; }
+        .prod-cat { font-size: 12px; color: var(--text-muted); }
+        .stock-good { color: #137333; font-weight: 600; }
+        .stock-bad { color: #d93025; font-weight: 600; }
+        .btn-delete { color: #c1c6d6; background: none; border: none; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-delete:hover { color: #d93025; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/admin_sidebar :: adminSidebar('products')}"></div>
+
+<div class="main">
+    <div class="topbar">
+        <div style="font-weight: 700; font-size: 18px;">The Gallery</div>
+        <div style="color: var(--text-muted); font-size: 14px;">Admin Product Mode</div>
+    </div>
+
+    <div class="content-area">
+        <div class="main-header">
+            <div>
+                <h1>Products Management</h1>
+                <p>Curate your product gallery. Manage stock levels, pricing, and visual representation of your premium hardware assets.</p>
+            </div>
+            <a th:href="@{/gerant/nouveau}" class="btn-primary"><i class="fas fa-plus"></i> Create New Product</a>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${produits}">
+                <td th:text="'#GAL-' + ${p.id}" style="color: var(--text-muted);"></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 48px; height: 48px; background: var(--bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #c1c6d6;"><i class="fas fa-laptop"></i></div>
+                        <div>
+                            <h4 class="prod-name" th:text="${p.nom}"></h4>
+                            <span class="prod-cat" th:text="${p.marque != null ? p.marque.nom : 'Generic'}"></span>
+                        </div>
+                    </div>
+                </td>
+                <td th:text="${p.prix} + ' MAD'" style="font-weight: 500;"></td>
+                <td th:class="${p.quantiteStock > 10 ? 'stock-good' : 'stock-bad'}" th:text="${p.quantiteStock} + ' pcs'"></td>
+                <td>
+                    <a th:href="@{'/gerant/delete/' + ${p.id}}" class="btn-delete"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

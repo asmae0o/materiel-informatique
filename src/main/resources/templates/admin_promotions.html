@@ -48,23 +48,7 @@
 </head>
 <body>
 
-<div class="sidebar">
-    <div class="brand">
-        <h2>Management</h2>
-        <span>Store Control</span>
-    </div>
-
-    <a th:href="@{/gerant/dashboard}" class="nav-item"><i class="fas fa-box"></i> Inventory</a>
-    <a th:href="@{/gerant/categories}" class="nav-item"><i class="fas fa-tags"></i> Categories</a>
-    <a th:href="@{/gerant/promotions}" class="nav-item active"><i class="fas fa-percentage"></i> Promotions</a>
-
-    <div class="bottom-nav">
-        <a th:href="@{/catalogue}" class="nav-item"><i class="fas fa-store"></i> View Store</a>
-        <form th:action="@{/logout}" method="post" style="margin: 0;">
-            <button type="submit" class="nav-item" style="background: none; border: none; width: 100%; cursor: pointer;"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
-        </form>
-    </div>
-</div>
+<div th:replace="~{fragments/admin_sidebar :: adminSidebar('promotions')}"></div>
 
 <div class="main">
     <div class="topbar">
@@ -86,7 +70,7 @@
                     <span th:text="'Current price: ' + ${p.prix} + ' MAD'">Price</span>
                 </div>
 
-                <form th:action="@{/gerant/promotions/apply}" method="post" class="promo-form">
+                <form th:action="@{/admin/promotions/apply}" method="post" class="promo-form">
                     <input type="hidden" name="produitId" th:value="${p.id}">
                     <input type="number" name="remise" placeholder="0%" min="0" max="100" required class="form-input-small">
                     <button type="submit" class="btn-apply">Apply</button>

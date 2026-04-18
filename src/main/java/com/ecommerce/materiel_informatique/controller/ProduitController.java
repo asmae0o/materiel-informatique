@@ -7,11 +7,15 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 public class ProduitController {
@@ -22,31 +26,33 @@ public class ProduitController {
     @Autowired private GerantRepository gerantRepository;
     @Autowired private AvisRepository avisRepository;
     @Autowired private CommandeRepository commandeRepository;
+    @Autowired private InMemoryUserDetailsManager userDetailsManager;
+    private final Set<String> clientUsers = ConcurrentHashMap.newKeySet();
+
+    public ProduitController() {
+        // Default client account available at startup
+        clientUsers.add("asmae");
+    }
 
     // ==========================================
     // --- ROUTES CLIENTS (Catalogue & Profil) ---
     // ==========================================
 
     @GetMapping("/")
-    public String home() {
-        return "redirect:/catalogue";
-    }
-
-    @GetMapping("/catalogue")
     public String clientInterface(Model model) {
         model.addAttribute("listeProduits", produitService.getAllProduits());
         model.addAttribute("categories", categorieService.getAllCategories());
         return "client_home";
     }
 
-    @GetMapping("/catalogue/search")
+    @GetMapping("/search")
     public String searchCatalogue(@RequestParam("keyword") String keyword, Model model) {
         model.addAttribute("listeProduits", produitService.searchProduits(keyword));
         model.addAttribute("categories", categorieService.getAllCategories());
         return "client_home";
     }
 
-    @GetMapping("/catalogue/categorie/{id}")
+    @GetMapping("/categorie/{id}")
     public String filterByCategorie(@PathVariable Long id, Model model) {
         model.addAttribute("listeProduits", produitService.getProduitsByCategorie(id));
         model.addAttribute("categories", categorieService.getAllCategories());
@@ -56,7 +62,7 @@ public class ProduitController {
     @GetMapping("/produit/{id}")
     public String produitDetails(@PathVariable Long id, Model model) {
         Produit produit = produitService.getProduitById(id);
-        if (produit == null) return "redirect:/catalogue";
+        if (produit == null) return "redirect:/";
         model.addAttribute("produit", produit);
         model.addAttribute("avisList", avisRepository.findByProduitId(id));
         return "produit_details";
@@ -101,13 +107,14 @@ public class ProduitController {
     // ==========================================
 
     @GetMapping("/panier")
-    public String voirPanier(Model model, HttpSession session) {
-        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
-        if (cart == null) cart = new HashMap<>();
-        double total = cart.values().stream().mapToDouble(CartItem::getTotalPrice).sum();
-        model.addAttribute("cartItems", cart.values());
-        model.addAttribute("total", total);
-        return "cart";
+    public String voirPanier() {
+        return "redirect:/";
+    }
+
+    @GetMapping("/cart/panel")
+    public String cartPanel(Model model, HttpSession session) {
+        fillCartModel(model, session);
+        return "fragments/cart_panel :: cartPanelContent";
     }
 
     @PostMapping("/cart/add/{id}")
@@ -125,41 +132,74 @@ public class ProduitController {
                 cart.put(id, new CartItem(p, 1));
             }
         }
-        return "redirect:/catalogue?cartSuccess";
+        return "redirect:/?cartSuccess";
     }
 
     @GetMapping("/cart/remove/{id}")
-    public String removeFromCart(@PathVariable Long id, HttpSession session) {
+    public String removeFromCart(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart != null) cart.remove(id);
-        return "redirect:/panier";
+
+        if (panel) {
+            fillCartModel(model, session);
+            return "fragments/cart_panel :: cartPanelContent";
+        }
+
+        return "redirect:/";
     }
 
     @GetMapping("/cart/add-qty/{id}")
-    public String addQuantity(@PathVariable Long id, HttpSession session) {
+    public String addQuantity(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart != null && cart.containsKey(id)) cart.get(id).setQuantite(cart.get(id).getQuantite() + 1);
-        return "redirect:/panier";
+
+        if (panel) {
+            fillCartModel(model, session);
+            return "fragments/cart_panel :: cartPanelContent";
+        }
+
+        return "redirect:/";
     }
 
     @GetMapping("/cart/min-qty/{id}")
-    public String minQuantity(@PathVariable Long id, HttpSession session) {
+    public String minQuantity(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart != null && cart.containsKey(id)) {
             CartItem item = cart.get(id);
             if (item.getQuantite() > 1) item.setQuantite(item.getQuantite() - 1);
             else cart.remove(id);
         }
-        return "redirect:/panier";
+
+        if (panel) {
+            fillCartModel(model, session);
+            return "fragments/cart_panel :: cartPanelContent";
+        }
+
+        return "redirect:/";
     }
 
     @GetMapping("/checkout")
     public String showCheckout(Model model, HttpSession session) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
-        if (cart == null || cart.isEmpty()) return "redirect:/panier";
+        if (cart == null || cart.isEmpty()) return "redirect:/";
         double total = cart.values().stream().mapToDouble(CartItem::getTotalPrice).sum();
         model.addAttribute("total", total);
         return "checkout";
+    }
+
+    private void fillCartModel(Model model, HttpSession session) {
+        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
+        if (cart == null) {
+            cart = new HashMap<>();
+            session.setAttribute("cart", cart);
+        }
+
+        double total = cart.values().stream().mapToDouble(CartItem::getTotalPrice).sum();
+        int itemCount = cart.values().stream().mapToInt(CartItem::getQuantite).sum();
+
+        model.addAttribute("cartItems", cart.values());
+        model.addAttribute("total", total);
+        model.addAttribute("itemCount", itemCount);
     }
 
     @PostMapping("/cart/validate")
@@ -193,7 +233,7 @@ public class ProduitController {
     @GetMapping("/gerant/dashboard")
     public String gerantInterface(Model model) {
         model.addAttribute("produits", produitService.getAllProduits());
-        return "gerant_dashboard";
+        return "admin_products";
     }
 
     @GetMapping("/gerant/nouveau")
@@ -266,7 +306,13 @@ public class ProduitController {
     @GetMapping("/admin/gerants")
     public String manageGerants(Model model) {
         model.addAttribute("gerants", gerantRepository.findAll());
+        model.addAttribute("clients", clientUsers.stream().sorted().toList());
         return "admin_users";
+    }
+
+    @GetMapping("/admin/users")
+    public String manageUsers(Model model) {
+        return manageGerants(model);
     }
 
     @PostMapping("/admin/gerants/save")
@@ -276,10 +322,23 @@ public class ProduitController {
         return "redirect:/admin/gerants";
     }
 
+    @PostMapping("/admin/users/save")
+    public String saveUser(@RequestParam("nom") String nom, @RequestParam("email") String email) {
+        Gerant g = new Gerant(nom, email);
+        gerantRepository.save(g);
+        return "redirect:/admin/users";
+    }
+
     @GetMapping("/admin/gerants/delete/{id}")
     public String deleteGerant(@PathVariable Long id) {
         gerantRepository.deleteById(id);
         return "redirect:/admin/gerants";
+    }
+
+    @GetMapping("/admin/users/delete/{id}")
+    public String deleteUser(@PathVariable Long id) {
+        gerantRepository.deleteById(id);
+        return "redirect:/admin/users";
     }
 
     @GetMapping("/admin/avis")
@@ -298,11 +357,94 @@ public class ProduitController {
     public String viewAllCommandes() {
         return "admin_commandes";
     }
+
+    @GetMapping("/admin/products")
+    public String adminProducts(Model model) {
+        model.addAttribute("produits", produitService.getAllProduits());
+        return "admin_products";
+    }
+
+    @GetMapping("/admin/categories")
+    public String adminCategories(Model model) {
+        model.addAttribute("categories", categorieService.getAllCategories());
+        return "admin_categories";
+    }
+
+    @PostMapping("/admin/categories/save")
+    public String adminSaveCategorie(@RequestParam("nom") String nom) {
+        Categorie cat = new Categorie();
+        cat.setNom(nom);
+        categorieService.saveCategorie(cat);
+        return "redirect:/admin/categories";
+    }
+
+    @GetMapping("/admin/categories/delete/{id}")
+    public String adminDeleteCategorie(@PathVariable Long id) {
+        categorieService.deleteCategorie(id);
+        return "redirect:/admin/categories";
+    }
+
+    @GetMapping("/admin/promotions")
+    public String adminPromotions(Model model) {
+        model.addAttribute("produits", produitService.getAllProduits());
+        return "admin_promotions";
+    }
+
+    @PostMapping("/admin/promotions/apply")
+    public String adminApplyPromotion(@RequestParam Long produitId, @RequestParam Double remise) {
+        Produit p = produitService.getProduitById(produitId);
+        if (p != null) {
+            double nouveauPrix = p.getPrix() * (1 - (remise / 100));
+            p.setPrix(nouveauPrix);
+            produitService.saveProduit(p);
+            return "redirect:/admin/promotions?success";
+        }
+        return "redirect:/admin/promotions?error";
+    }
     // ==========================================
     // --- ROUTE POUR LA PAGE DE CONNEXION ---
     // ==========================================
     @GetMapping("/login")
     public String showLoginForm() {
         return "login"; // Va chercher le fichier login.html
+    }
+
+    @GetMapping("/signup")
+    public String showSignupForm() {
+        return "signup";
+    }
+
+    @PostMapping("/signup")
+    public String handleSignup(
+            @RequestParam String username,
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+            RedirectAttributes redirectAttributes) {
+
+        String cleanUsername = username == null ? "" : username.trim();
+
+        if (cleanUsername.isEmpty() || password == null || password.isBlank()) {
+            redirectAttributes.addFlashAttribute("signupError", "Nom d'utilisateur et mot de passe sont obligatoires.");
+            return "redirect:/signup";
+        }
+
+        if (!password.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("signupError", "Les mots de passe ne correspondent pas.");
+            return "redirect:/signup";
+        }
+
+        if (userDetailsManager.userExists(cleanUsername)) {
+            redirectAttributes.addFlashAttribute("signupError", "Ce nom d'utilisateur existe deja.");
+            return "redirect:/signup";
+        }
+
+        userDetailsManager.createUser(User.withUsername(cleanUsername)
+                .password("{noop}" + password)
+                .roles("CLIENT")
+                .build());
+
+        clientUsers.add(cleanUsername);
+
+        return "redirect:/login?registered";
     }
 }

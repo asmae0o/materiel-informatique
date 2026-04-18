@@ -1,12 +1,20 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Détails du Produit</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f5f5f7; margin: 0; padding: 40px 10%; }
+        body { font-family: 'Inter', sans-serif; background: #f5f5f7; margin: 0; padding: 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 0 5%; height: 60px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .logo { font-size: 18px; font-weight: 700; color: #1a1c1d; text-decoration: none; letter-spacing: -0.02em; }
+        .nav-links { display: flex; align-items: center; gap: 30px; }
+        .nav-links a { color: #5e5e63; text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: #1a1c1d; }
+        .nav-icons { display: flex; gap: 20px; align-items: center; }
+        .nav-icons a, .nav-icons button { color: #1a1c1d; background: none; border: none; font-size: 18px; cursor: pointer; text-decoration: none; }
+        .page-content { padding: 40px 10%; }
         .btn-back { color: #0071e3; text-decoration: none; font-weight: 600; display: inline-block; margin-bottom: 30px; }
         .product-header { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; }
         h1 { margin: 0 0 10px 0; font-size: 2.5rem; color: #1d1d1f; }
@@ -20,7 +28,11 @@
 </head>
 <body>
 
-<a th:href="@{/catalogue}" class="btn-back">← Retour au Catalogue</a>
+<div th:replace="~{fragments/storefront_header :: storefrontHeader}"></div>
+
+<div class="page-content">
+
+<a th:href="@{/}" class="btn-back">← Retour au Catalogue</a>
 
 <div class="product-header">
     <h1 th:text="${produit.nom}">Nom du Produit</h1>
@@ -57,6 +69,8 @@
 
         <button type="submit" class="btn-submit">Publier l'avis</button>
     </form>
+</div>
+
 </div>
 
 </body>
