@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>MyHardware | The Gallery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text-main); margin: 0; padding: 0; }
+
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 0 5%; height: 60px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.04);}
+        .logo { font-size: 18px; font-weight: 700; color: var(--text-main); text-decoration: none; letter-spacing: -0.02em;}
+        .nav-links { display: flex; align-items: center; gap: 30px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s;}
+        .nav-links a:hover, .nav-links a.active { color: var(--text-main); }
+        .nav-icons { display: flex; gap: 20px; align-items: center;}
+        .nav-icons a, .nav-icons button { color: var(--text-main); background: none; border: none; font-size: 18px; cursor: pointer; text-decoration: none;}
+
+        .hero-container { padding: 30px 5%; }
+        .hero { background: var(--bg); border-radius: 32px; padding: 80px 20px; text-align: center; position: relative; overflow: hidden;}
+        .hero h1 { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 30px 0; line-height: 1.1; color: var(--text-main);}
+        .search-form { position: relative; max-width: 500px; margin: 0 auto; }
+        .search-form i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted);}
+        .search-input { width: 100%; padding: 18px 20px 18px 50px; border-radius: 999px; border: none; font-size: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.05); outline: none; box-sizing: border-box;}
+
+        .layout { display: flex; gap: 50px; padding: 20px 5% 80px; max-width: 1400px; margin: 0 auto; }
+
+        .sidebar { width: 220px; flex-shrink: 0;}
+        .sidebar h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 15px;}
+        .cat-list { list-style: none; padding: 0; margin: 0 0 40px 0; }
+        .cat-list li a { display: block; padding: 10px 15px; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s;}
+        .cat-list li a:hover, .cat-list li a.active { background: var(--bg); color: var(--text-main); }
+        .info-card { background: var(--bg); padding: 20px; border-radius: 20px; }
+        .info-card h4 { margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; color: #bf4800;}
+        .info-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin: 0 0 15px 0;}
+
+        .products { flex: 1; }
+        .products-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 30px;}
+        .products-header h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin: 0;}
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .card { background: var(--surface); border-radius: 24px; padding: 25px; box-shadow: 0 4px 14px rgba(26,28,29,0.03); transition: 0.3s; display: flex; flex-direction: column; text-decoration: none;}
+        .card:hover { box-shadow: 0 12px 30px rgba(26,28,29,0.08); transform: translateY(-4px);}
+        .img-placeholder { background: var(--bg); height: 200px; border-radius: 16px; margin-bottom: 25px; display: flex; justify-content: center; align-items: center; color: #c1c6d6;}
+
+        .brand { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #bf4800; font-weight: 600; margin-bottom: 8px;}
+        .name { font-size: 18px; font-weight: 600; color: var(--text-main); margin: 0 0 10px 0; letter-spacing: -0.02em;}
+        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 20px;}
+        .price { font-size: 17px; font-weight: 600; color: var(--text-main);}
+        .btn-add { background: var(--bg); color: var(--text-main); font-weight: 500; font-size: 13px; padding: 10px 20px; border-radius: 999px; border: none; cursor: pointer; transition: 0.2s;}
+        .btn-add:hover { background: var(--primary); color: white; }
+
+        .alert { background: #e8f5e9; color: #137333; padding: 15px; text-align: center; font-weight: 500;}
+    </style>
+</head>
+<body>
+
+<div th:if="${param.cartSuccess}" class="alert">Added to your bag.</div>
+
+<div class="navbar">
+    <a th:href="@{/catalogue}" class="logo">The Gallery</a>
+
+    <div class="nav-links">
+        <a th:href="@{/catalogue}" class="active">Store</a>
+    </div>
+
+    <div class="nav-icons">
+        <a sec:authorize="!hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')" th:href="@{/panier}"><i class="fas fa-shopping-bag"></i></a>
+
+        <div sec:authorize="!isAuthenticated()"><a th:href="@{/login}"><i class="far fa-user-circle"></i></a></div>
+
+        <div sec:authorize="isAuthenticated() and !hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')">
+            <a th:href="@{/compte}"><i class="fas fa-user-circle"></i></a>
+        </div>
+
+        <div sec:authorize="hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')" style="display: flex; gap: 15px;">
+            <a sec:authorize="hasAnyAuthority('GERANT', 'ROLE_GERANT')" th:href="@{/gerant/dashboard}" style="font-size: 14px; font-weight: 500; color: var(--primary);">Dashboard</a>
+            <a sec:authorize="hasAnyAuthority('ADMIN', 'ROLE_ADMIN')" th:href="@{/admin/dashboard}" style="font-size: 14px; font-weight: 500; color: #f59e0b;">Admin</a>
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit"><i class="fas fa-sign-out-alt"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="hero-container">
+    <div class="hero">
+        <h1>Designed for<br>performance</h1>
+        <form th:action="@{/catalogue/search}" method="get" class="search-form">
+            <i class="fas fa-search"></i>
+            <input type="text" name="keyword" class="search-input" placeholder="Search for products..." th:value="${param.keyword}">
+        </form>
+    </div>
+</div>
+
+<div class="layout">
+    <div class="sidebar">
+        <h3>Product Categories</h3>
+        <ul class="cat-list">
+            <li><a th:href="@{/catalogue}" class="active">All Products</a></li>
+            <li th:each="cat : ${categories}">
+                <a th:href="@{'/catalogue/categorie/' + ${cat.id}}" th:text="${cat.nom}"></a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="products">
+        <div class="products-header">
+            <h2>Featured Hardware</h2>
+        </div>
+
+        <div class="grid">
+            <div th:each="p : ${listeProduits}" class="card">
+                <a th:href="@{'/produit/' + ${p.id}}" style="text-decoration: none; color: inherit; flex: 1;">
+                    <div class="img-placeholder"><i class="fas fa-laptop" style="font-size: 40px;"></i></div>
+                    <div class="brand" th:text="${p.marque != null ? p.marque.nom : 'NEW GENERATION'}"></div>
+                    <h3 class="name" th:text="${p.nom}"></h3>
+                </a>
+
+                <div class="price-row">
+                    <span class="price" th:text="'$' + ${p.prix}"></span>
+                    <form sec:authorize="!hasAnyAuthority('GERANT', 'ADMIN', 'ROLE_GERANT', 'ROLE_ADMIN')" th:action="@{'/cart/add/' + ${p.id}}" method="post">
+                        <button type="submit" class="btn-add">Add to bag</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

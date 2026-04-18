@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Checkout | The Gallery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 0; }
+
+        .navbar { display: flex; justify-content: space-between; padding: 20px 5%; background: var(--surface); border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .logo { font-weight: 700; color: var(--text-main); text-decoration: none; font-size: 18px;}
+
+        .container { max-width: 640px; margin: 40px auto; padding: 0 20px; }
+        .header { text-align: center; margin-bottom: 40px;}
+        .header span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 600;}
+        .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 5px 0 0 0; }
+
+        /* Summary Card */
+        .summary-card { background: rgba(0, 113, 227, 0.03); border: 1px solid rgba(0, 113, 227, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 40px;}
+        .summary-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 20px;}
+        .summary-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0, 113, 227, 0.1); padding-top: 20px; margin-top: 20px; font-size: 20px; font-weight: 700;}
+
+        /* Sections */
+        .section-title { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: 600; margin-bottom: 25px;}
+        .circle-num { width: 28px; height: 28px; background: #e8e8ed; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-main);}
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        input { width: 100%; padding: 18px 20px; background: var(--surface); border: 1px solid transparent; border-radius: 12px; font-size: 15px; color: var(--text-main); font-family: inherit; outline: none; transition: 0.2s; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); }
+
+        .payment-method { border: 2px solid var(--primary); background: var(--surface); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 14px rgba(0, 113, 227, 0.05);}
+        .payment-icon { width: 40px; height: 40px; background: rgba(0, 113, 227, 0.1); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px;}
+
+        .btn-checkout { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 999px; font-size: 17px; font-weight: 500; cursor: pointer; transition: 0.2s; margin-top: 40px; display: flex; justify-content: center; align-items: center; gap: 10px;}
+        .btn-checkout:hover { background: #005bb5; }
+
+        .secure-footer { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px;}
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <a th:href="@{/catalogue}" class="logo">The Gallery</a>
+    <a th:href="@{/panier}" style="color: var(--text-main); text-decoration: none; font-size: 14px;">Cancel</a>
+</div>
+
+<div class="container">
+    <div class="header">
+        <span>Secure Checkout</span>
+        <h1>Review & Pay</h1>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-header">
+            <span>Order Summary</span>
+            <span style="color: var(--primary);">Items</span>
+        </div>
+        <div class="summary-total">
+            <span>Total</span>
+            <span th:text="'$' + ${total}"></span>
+        </div>
+    </div>
+
+    <form th:action="@{/cart/validate}" method="post">
+        <div class="section-title"><div class="circle-num">1</div> Shipping Information</div>
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="nom" th:value="${#authentication.name != 'anonymousUser' ? #authentication.name : ''}" placeholder="Enter your full name" required>
+        </div>
+        <div class="form-group">
+            <label>Delivery Address</label>
+            <input type="text" name="adresse" placeholder="Street address, city, and zip code" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 50px;">
+            <label>Phone Number</label>
+            <input type="tel" name="tel" placeholder="+1 (555) 000-0000" required>
+        </div>
+
+        <div class="section-title"><div class="circle-num">2</div> Payment Method</div>
+
+        <div class="payment-method">
+            <div class="payment-icon"><i class="fas fa-truck"></i></div>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 15px;">Cash on Delivery</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Pay with cash when your order arrives</div>
+            </div>
+            <input type="radio" name="paiement" value="Paiement à la livraison" checked style="width: auto; box-shadow: none;">
+        </div>
+
+        <button type="submit" class="btn-checkout">Place Order <i class="fas fa-arrow-right"></i></button>
+        <div class="secure-footer"><i class="fas fa-lock"></i> Encryption ensures your information is private and secure.</div>
+    </form>
+</div>
+</body>
+</html>

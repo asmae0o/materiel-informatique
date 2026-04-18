@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails du Produit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f5f5f7; margin: 0; padding: 40px 10%; }
+        .btn-back { color: #0071e3; text-decoration: none; font-weight: 600; display: inline-block; margin-bottom: 30px; }
+        .product-header { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 30px; }
+        h1 { margin: 0 0 10px 0; font-size: 2.5rem; color: #1d1d1f; }
+        .price { font-size: 1.5rem; font-weight: 800; color: #0071e3; }
+
+        .reviews-section { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .review-card { padding: 15px; border-bottom: 1px solid #eee; }
+        .form-avis input, .form-avis textarea, .form-avis select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+        .btn-submit { background: #0071e3; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<a th:href="@{/catalogue}" class="btn-back">← Retour au Catalogue</a>
+
+<div class="product-header">
+    <h1 th:text="${produit.nom}">Nom du Produit</h1>
+    <p th:text="${produit.description}">Description détaillée...</p>
+    <p class="price" th:text="${produit.prix} + ' MAD'"></p>
+    <p style="color: #34c759; font-weight: 600;">En stock : <span th:text="${produit.quantiteStock}"></span> unités</p>
+</div>
+
+<div class="reviews-section">
+    <h2>Avis des clients</h2>
+
+    <div th:each="a : ${avisList}" class="review-card">
+        <strong th:text="${a.clientNom}">Client</strong>
+        <span style="color: #f5c518;" th:text="${a.note} + '/5 ★'"></span>
+        <p style="margin-top: 5px; color: #555;" th:text="${a.commentaire}"></p>
+    </div>
+    <p th:if="${#lists.isEmpty(avisList)}" style="color: #888;">Aucun avis pour le moment. Soyez le premier !</p>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+    <h3>Laisser un avis</h3>
+    <form th:action="@{'/produit/' + ${produit.id} + '/avis'}" method="post" class="form-avis">
+        <input type="text" name="clientNom" placeholder="Votre nom (ex: Asmae)" required>
+
+        <select name="note" required>
+            <option value="5">5 Étoiles - Excellent</option>
+            <option value="4">4 Étoiles - Très bien</option>
+            <option value="3">3 Étoiles - Moyen</option>
+            <option value="2">2 Étoiles - Décevant</option>
+            <option value="1">1 Étoile - Mauvais</option>
+        </select>
+
+        <textarea name="commentaire" rows="4" placeholder="Partagez votre expérience..." required></textarea>
+
+        <button type="submit" class="btn-submit">Publier l'avis</button>
+    </form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice | The Gallery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9f9fb; color: #1a1c1d; padding: 60px 20px; margin: 0; }
+        .invoice-card { background: white; max-width: 600px; margin: 0 auto; padding: 50px; border-radius: 24px; box-shadow: 0 4px 20px rgba(26,28,29,0.03); }
+        .header { display: flex; justify-content: space-between; border-bottom: 1px solid #eeeef0; padding-bottom: 30px; margin-bottom: 30px;}
+        .header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em;}
+        .label { font-size: 11px; text-transform: uppercase; color: #5e5e63; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 5px;}
+        .value { font-size: 15px; font-weight: 500; margin: 0 0 20px 0;}
+        .total-box { background: #f9f9fb; padding: 20px; border-radius: 16px; text-align: right; margin-top: 30px;}
+        .total-box h2 { margin: 0; font-size: 32px; color: #0071e3; letter-spacing: -0.02em;}
+    </style>
+</head>
+<body>
+<div style="max-width: 600px; margin: 0 auto 20px auto;">
+    <a href="/compte" style="color: #0071e3; text-decoration: none; font-weight: 500; font-size: 14px;">&larr; Back to Account</a>
+</div>
+<div class="invoice-card">
+    <div class="header">
+        <div>
+            <div class="label">Invoice</div>
+            <h1 th:text="${commande.numero}">#TG-0000</h1>
+        </div>
+        <div style="text-align: right;">
+            <div class="label">Date</div>
+            <div class="value" th:text="${#temporals.format(commande.dateCommande, 'MMM dd, yyyy')}"></div>
+        </div>
+    </div>
+
+    <div class="label">Billed To</div>
+    <p class="value" th:text="${commande.clientNom}"></p>
+
+    <div class="label">Shipping Address</div>
+    <p class="value" th:text="${commande.adresseLivraison}"></p>
+
+    <div class="label">Payment Method</div>
+    <p class="value" th:text="${commande.methodePaiement}"></p>
+
+    <div class="total-box">
+        <div class="label">Total Amount</div>
+        <h2 th:text="'$' + ${commande.total}"></h2>
+    </div>
+</div>
+</body>
+</html>

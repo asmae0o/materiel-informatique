@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Promotions | Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh;}
+
+        /* Sidebar */
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column;}
+        .brand { padding: 0 30px; margin-bottom: 40px;}
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em;}
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;}
+
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;}
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
+        .nav-item i { width: 20px; font-size: 16px;}
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+        .bottom-nav { margin-top: auto; }
+
+        /* Main Content */
+        .main { flex: 1; padding: 0; overflow-y: auto;}
+        .topbar { display: flex; justify-content: space-between; padding: 20px 60px; border-bottom: 1px solid rgba(0,0,0,0.04); background: var(--surface);}
+        .content-area { padding: 40px 60px; max-width: 1000px;}
+
+        .main-header { margin-bottom: 40px;}
+        .main-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0;}
+        .main-header p { color: var(--text-muted); font-size: 16px; margin: 0; max-width: 600px;}
+
+        /* List of promotions */
+        .promo-list { display: flex; flex-direction: column; gap: 15px; }
+        .promo-row { background: var(--surface); border-radius: 20px; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(26,28,29,0.02); border: 1px solid rgba(0,0,0,0.02);}
+
+        .promo-info h4 { margin: 0 0 5px 0; font-size: 16px; font-weight: 600;}
+        .promo-info span { font-size: 13px; color: var(--text-muted);}
+
+        .promo-form { display: flex; align-items: center; gap: 10px;}
+        .form-input-small { width: 80px; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: var(--bg); font-size: 14px; outline: none; text-align: center;}
+        .form-input-small:focus { border-color: var(--primary); }
+        .btn-apply { background: #e8f5e9; color: #137333; padding: 12px 20px; border-radius: 999px; font-weight: 600; font-size: 13px; border: none; cursor: pointer; transition: 0.2s;}
+        .btn-apply:hover { background: #ceead1; }
+
+        .alert-success { background: #e8f5e9; color: #137333; padding: 15px; border-radius: 12px; margin-bottom: 30px; text-align: center; font-weight: 500;}
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand">
+        <h2>Management</h2>
+        <span>Store Control</span>
+    </div>
+
+    <a th:href="@{/gerant/dashboard}" class="nav-item"><i class="fas fa-box"></i> Inventory</a>
+    <a th:href="@{/gerant/categories}" class="nav-item"><i class="fas fa-tags"></i> Categories</a>
+    <a th:href="@{/gerant/promotions}" class="nav-item active"><i class="fas fa-percentage"></i> Promotions</a>
+
+    <div class="bottom-nav">
+        <a th:href="@{/catalogue}" class="nav-item"><i class="fas fa-store"></i> View Store</a>
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="nav-item" style="background: none; border: none; width: 100%; cursor: pointer;"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+        </form>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div style="font-weight: 700; font-size: 18px;">The Gallery</div>
+    </div>
+
+    <div class="content-area">
+        <div th:if="${param.success}" class="alert-success">Promotion successfully applied!</div>
+
+        <div class="main-header">
+            <h1>Promotions Management</h1>
+            <p>Apply temporary discounts (percentage) to your hardware assets.</p>
+        </div>
+
+        <div class="promo-list">
+            <div th:each="p : ${produits}" class="promo-row">
+                <div class="promo-info">
+                    <h4 th:text="${p.nom}">Product Name</h4>
+                    <span th:text="'Current price: ' + ${p.prix} + ' MAD'">Price</span>
+                </div>
+
+                <form th:action="@{/gerant/promotions/apply}" method="post" class="promo-form">
+                    <input type="hidden" name="produitId" th:value="${p.id}">
+                    <input type="number" name="remise" placeholder="0%" min="0" max="100" required class="form-input-small">
+                    <button type="submit" class="btn-apply">Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
