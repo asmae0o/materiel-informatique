@@ -139,8 +139,8 @@ public class ProduitController {
     }
 
     @GetMapping("/cart/panel")
-    public String cartPanel(Model model, HttpSession session) {
-        fillCartModel(model, session);
+    public String cartPanel(Model model, HttpSession session, Principal principal) {
+        fillCartModel(model, session, principal);
         return "fragments/cart_panel :: cartPanelContent";
     }
 
@@ -172,12 +172,12 @@ public class ProduitController {
     }
 
     @GetMapping("/cart/remove/{id}")
-    public String removeFromCart(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session) {
+    public String removeFromCart(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session, Principal principal) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart != null) cart.remove(id);
 
         if (panel) {
-            fillCartModel(model, session);
+            fillCartModel(model, session, principal);
             return "fragments/cart_panel :: cartPanelContent";
         }
 
@@ -185,12 +185,12 @@ public class ProduitController {
     }
 
     @GetMapping("/cart/add-qty/{id}")
-    public String addQuantity(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session) {
+    public String addQuantity(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session, Principal principal) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart != null && cart.containsKey(id)) cart.get(id).setQuantite(cart.get(id).getQuantite() + 1);
 
         if (panel) {
-            fillCartModel(model, session);
+            fillCartModel(model, session, principal);
             return "fragments/cart_panel :: cartPanelContent";
         }
 
@@ -198,7 +198,7 @@ public class ProduitController {
     }
 
     @GetMapping("/cart/min-qty/{id}")
-    public String minQuantity(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session) {
+    public String minQuantity(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean panel, Model model, HttpSession session, Principal principal) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart != null && cart.containsKey(id)) {
             CartItem item = cart.get(id);
@@ -207,7 +207,7 @@ public class ProduitController {
         }
 
         if (panel) {
-            fillCartModel(model, session);
+            fillCartModel(model, session, principal);
             return "fragments/cart_panel :: cartPanelContent";
         }
 
@@ -223,7 +223,7 @@ public class ProduitController {
         return "checkout";
     }
 
-    private void fillCartModel(Model model, HttpSession session) {
+    private void fillCartModel(Model model, HttpSession session, Principal principal) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart == null) {
             cart = new HashMap<>();
@@ -236,6 +236,7 @@ public class ProduitController {
         model.addAttribute("cartItems", cart.values());
         model.addAttribute("total", total);
         model.addAttribute("itemCount", itemCount);
+        model.addAttribute("isAuthenticated", principal != null);
     }
 
     @PostMapping("/cart/validate")
