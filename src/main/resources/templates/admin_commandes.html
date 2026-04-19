@@ -25,6 +25,7 @@
         th { color: #86868b; font-weight: 600; font-size: 12px; text-transform: uppercase; }
         .status-select { padding: 6px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: none; cursor: pointer; outline: none; font-family: inherit; }
         .empty-state { text-align: center; color: #888; padding: 40px; }
+        tbody tr:hover { background: #f9f9fb; }
     </style>
 </head>
 <body>
@@ -55,7 +56,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="cmd : ${commandes}">
+        <tr th:each="cmd : ${commandes}" th:onclick="|window.location='/admin/commandes/${cmd.id}'|" style="cursor:pointer;">
             <td th:text="${cmd.numero}" style="font-weight: 600;"></td>
             <td th:text="${cmd.clientNom}"></td>
             <td th:text="${#numbers.formatDecimal(cmd.total, 1, 2)} + ' MAD'" style="font-weight: 600;"></td>

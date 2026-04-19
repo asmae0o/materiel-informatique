@@ -45,7 +45,7 @@
            th:href="@{/checkout}" class="checkout-btn" th:classappend="${itemCount == 0} ? ' disabled' : ''">Proceed to Checkout</a>
         <button th:unless="${isAuthenticated}"
                 type="button" class="checkout-btn" th:classappend="${itemCount == 0} ? ' disabled' : ''"
-                onclick="window.CartPanel.close(); openModal('loginModal');">Proceed to Checkout</button>
+                onclick="window.CartPanel.close(); document.getElementById('loginRedirectTo').value='/checkout'; openModal('loginModal');">Proceed to Checkout</button>
     </div>
 </div>
 </body>

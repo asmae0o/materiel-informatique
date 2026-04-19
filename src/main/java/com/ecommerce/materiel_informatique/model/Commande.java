@@ -2,6 +2,8 @@ package com.ecommerce.materiel_informatique.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Commande {
@@ -16,6 +18,9 @@ public class Commande {
     private String clientNom;
     private String adresseLivraison;
     private String methodePaiement;
+
+    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<CommandeItem> items = new ArrayList<>();
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -33,4 +38,6 @@ public class Commande {
     public void setAdresseLivraison(String adresseLivraison) { this.adresseLivraison = adresseLivraison; }
     public String getMethodePaiement() { return methodePaiement; }
     public void setMethodePaiement(String methodePaiement) { this.methodePaiement = methodePaiement; }
+    public List<CommandeItem> getItems() { return items; }
+    public void setItems(List<CommandeItem> items) { this.items = items; }
 }

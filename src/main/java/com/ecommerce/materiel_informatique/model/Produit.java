@@ -13,6 +13,8 @@ public class Produit {
     private String nom;
     private String description;
     private double prix;
+    private double prixOriginal;
+    private int remise;
     private int quantiteStock;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -39,6 +41,10 @@ public class Produit {
 
     public double getPrix() { return prix; }
     public void setPrix(double prix) { this.prix = prix; }
+    public double getPrixOriginal() { return prixOriginal; }
+    public void setPrixOriginal(double prixOriginal) { this.prixOriginal = prixOriginal; }
+    public int getRemise() { return remise; }
+    public void setRemise(int remise) { this.remise = remise; }
 
     public int getQuantiteStock() { return quantiteStock; }
     public void setQuantiteStock(int quantiteStock) { this.quantiteStock = quantiteStock; }

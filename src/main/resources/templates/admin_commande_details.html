@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
+    <meta charset="UTF-8">
+    <title>Commande Details | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 30px; margin-bottom: 40px; }
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .nav-item i { width: 20px; font-size: 16px; }
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+        .bottom-nav { margin-top: auto; }
+        .main { flex: 1; padding: 40px 6%; overflow-y: auto; }
+
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; margin-bottom: 30px; transition: color 0.2s; }
+        .back-btn:hover { color: var(--text-main); }
+
+        .page-header { margin-bottom: 36px; }
+        .page-header h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 6px; }
+        .page-header p { color: var(--text-muted); font-size: 15px; margin: 0; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        .card { background: var(--surface); border-radius: 20px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+        .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); font-weight: 700; margin-bottom: 22px; }
+
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); gap: 20px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-size: 13px; color: var(--text-muted); font-weight: 500; flex-shrink: 0; }
+        .info-value { font-size: 14px; color: var(--text-main); font-weight: 600; text-align: right; }
+
+        .status-badge { display: inline-block; padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+        .status-en-cours { background: #fff3cd; color: #856404; }
+        .status-expediee { background: #cce5ff; color: #004085; }
+        .status-livree { background: #d4edda; color: #155724; }
+        .status-annulee { background: #f8d7da; color: #721c24; }
+
+        .client-avatar { width: 56px; height: 56px; background: #f5f5f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--text-muted); margin-bottom: 18px; }
+
+        .update-form { margin-top: 24px; display: flex; gap: 10px; align-items: center; }
+        .status-select { flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); font-family: inherit; font-size: 14px; font-weight: 500; outline: none; background: var(--bg); }
+        .btn-update { padding: 10px 22px; background: #1a1c1d; color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        .btn-update:hover { background: #000; }
+
+        .total-highlight { font-size: 26px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; }
+        .product-row { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .product-row:last-child { border-bottom: none; }
+        .product-img { width: 64px; height: 64px; border-radius: 14px; background: #f5f5f7; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #c1c6d6; font-size: 22px; }
+        .product-img img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { flex: 1; }
+        .product-name { font-size: 15px; font-weight: 600; color: var(--text-main); }
+        .product-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .product-price { font-size: 15px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/admin_sidebar :: adminSidebar('commandes')}"></div>
+
+<div class="main">
+    <a href="/admin/commandes" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+
+    <div class="page-header">
+        <h1 th:text="${cmd.numero}">Order</h1>
+        <p th:text="'Placed on ' + ${cmd.dateCommande}"></p>
+    </div>
+
+    <div class="grid">
+
+        <!-- Order Info -->
+        <div class="card">
+            <div class="card-title">Order Details</div>
+
+            <div class="info-row">
+                <span class="info-label">Reference</span>
+                <span class="info-value" th:text="${cmd.numero}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Date</span>
+                <span class="info-value" th:text="${cmd.dateCommande}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total</span>
+                <span class="info-value total-highlight" th:text="${#numbers.formatDecimal(cmd.total, 1, 2)} + ' MAD'"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Payment</span>
+                <span class="info-value" th:text="${cmd.methodePaiement}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Delivery Address</span>
+                <span class="info-value" th:text="${cmd.adresseLivraison}"></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="status-badge"
+                      th:classappend="${cmd.statut == 'Livrée'} ? 'status-livree' :
+                                      (${cmd.statut == 'Annulée'} ? 'status-annulee' :
+                                      (${cmd.statut == 'Expédiée'} ? 'status-expediee' : 'status-en-cours'))"
+                      th:text="${cmd.statut}"></span>
+            </div>
+
+            <form th:action="@{'/admin/commandes/statut/' + ${cmd.id}}" method="post" class="update-form">
+                <select name="statut" class="status-select">
+                    <option value="En cours de préparation" th:selected="${cmd.statut == 'En cours de préparation'}">En cours de préparation</option>
+                    <option value="Expédiée" th:selected="${cmd.statut == 'Expédiée'}">Expédiée</option>
+                    <option value="Livrée" th:selected="${cmd.statut == 'Livrée'}">Livrée</option>
+                    <option value="Annulée" th:selected="${cmd.statut == 'Annulée'}">Annulée</option>
+                </select>
+                <button type="submit" class="btn-update">Update</button>
+            </form>
+        </div>
+
+        <!-- Client Info -->
+        <div class="card">
+            <div class="card-title">Client Information</div>
+
+            <div th:if="${client != null}">
+                <div class="client-avatar" th:text="${#strings.toUpperCase(#strings.substring(client.username, 0, 1))}"></div>
+                <div class="info-row">
+                    <span class="info-label">Full Name</span>
+                    <span class="info-value" th:text="${client.nom != null ? client.nom : '—'}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Username</span>
+                    <span class="info-value" th:text="${client.username}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value" th:text="${client.email != null ? client.email : '—'}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone</span>
+                    <span class="info-value" th:text="${client.telephone != null ? client.telephone : '—'}"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Saved Address</span>
+                    <span class="info-value" th:text="${client.adresse != null ? client.adresse : '—'}"></span>
+                </div>
+            </div>
+
+            <div th:unless="${client != null}" style="color: var(--text-muted); font-size: 14px; padding: 20px 0;">
+                <i class="fas fa-user-slash" style="margin-right: 8px;"></i>
+                Client account not found (guest or deleted).
+                <div class="info-row" style="margin-top: 16px;">
+                    <span class="info-label">Name on order</span>
+                    <span class="info-value" th:text="${cmd.clientNom}"></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Products -->
+    <div class="card" style="margin-top: 24px;">
+        <div class="card-title">Products Ordered</div>
+        <div th:if="${cmd.items == null or cmd.items.isEmpty()}" style="color:#5e5e63; font-size:14px; padding: 10px 0;">
+            <i class="fas fa-info-circle" style="margin-right:6px;"></i>
+            No product data — this order was placed before item tracking was enabled.
+        </div>
+        <div th:each="item : ${cmd.items}" class="product-row">
+            <div class="product-img">
+                <img th:if="${item.produit.getPrimaryImage() != null}" th:src="@{${item.produit.getPrimaryImage()}}" alt="">
+                <i th:unless="${item.produit.getPrimaryImage() != null}" class="fas fa-box"></i>
+            </div>
+            <div class="product-info">
+                <div class="product-name" th:text="${item.produit.nom}"></div>
+                <div class="product-meta" th:text="${item.produit.marque != null ? item.produit.marque.nom : ''} + ' · x' + ${item.quantite}"></div>
+            </div>
+            <div class="product-price" th:text="${item.prixUnitaire} + ' MAD'"></div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

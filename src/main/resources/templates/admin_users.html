@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #1a1c1d; }
         body { background: var(--bg); font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
 
         /* Sidebar */
@@ -29,10 +29,15 @@
         .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
         /* Table */
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #f0f0f0; }
         th { color: #86868b; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-        td { font-size: 14px; }
+        th:nth-child(1) { width: 60px; }
+        th:nth-child(4) { width: 200px; }
+        th:nth-child(5) { width: 130px; }
+        th:nth-child(6) { width: 90px; }
+        th:nth-child(7) { width: 100px; }
+        td { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
         .badge-admin  { background: #fde8e8; color: #b91c1c; }
         .badge-gerant { background: #e0f2fe; color: #0369a1; }
@@ -52,8 +57,8 @@
         .filter-tab.active { background: var(--text-main); color: #fff; }
 
         /* Add button */
-        .btn-primary { background: var(--primary); color: white; padding: 11px 22px; border-radius: 999px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 8px; }
-        .btn-primary:hover { background: #005bb5; }
+        .btn-primary { background: #1a1c1d; color: white; padding: 11px 22px; border-radius: 999px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 8px; }
+        .btn-primary:hover { background: #000; }
 
         /* Modal overlay */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 9999; justify-content: center; align-items: center; }
@@ -68,13 +73,36 @@
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.04em; }
         .form-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e0e0e5; outline: none; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; }
-        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
+        .form-input:focus { border-color: #1a1c1d; box-shadow: 0 0 0 3px rgba(26,28,29,0.08); }
         .form-select { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e0e0e5; outline: none; font-family: inherit; font-size: 14px; background: white; box-sizing: border-box; }
         .modal-actions { display: flex; gap: 12px; margin-top: 28px; }
-        .btn-save { flex: 1; background: var(--primary); color: white; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
-        .btn-save:hover { background: #005bb5; }
+        .btn-save { flex: 1; background: #1a1c1d; color: white; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .btn-save:hover { background: #000; }
         .btn-cancel { flex: 1; background: var(--bg); color: var(--text-muted); padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
         .btn-cancel:hover { background: #e5e5ea; }
+
+        /* Delete modal */
+        .modal-delete { width: 400px; padding: 40px 32px; text-align: center; }
+        .modal-delete .icon-warning { background: #fee2e2; color: #ef4444; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 20px auto; }
+        .modal-delete h2 { font-size: 18px; margin-bottom: 12px; }
+        .modal-delete p { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 28px; }
+        .btn-delete-confirm { flex: 1; background: #ef4444; color: white; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .btn-delete-confirm:hover { background: #dc2626; }
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; padding: 16px 20px; align-items: flex-start; gap: 12px; min-width: 300px; position: relative; overflow: hidden; pointer-events: auto; animation: toastSlideIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards; border: 1px solid rgba(0,0,0,0.05); }
+        .toast.closing { animation: toastSlideOut 0.3s ease forwards; }
+        .toast-icon { color: #10b981; font-size: 20px; margin-top: 2px; }
+        .toast-content { flex: 1; }
+        .toast-title { font-size: 15px; font-weight: 600; color: #111827; margin: 0 0 4px 0; display: block; }
+        .toast-msg { font-size: 13px; color: #6b7280; margin: 0; }
+        .toast-close { color: #d1d5db; cursor: pointer; font-size: 14px; background: none; border: none; padding: 4px; display: flex; transition: color 0.2s; margin-top: 2px; }
+        .toast-close:hover { color: #6b7280; }
+        .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #34d399; width: 100%; transform-origin: left; animation: toastProgress 3s linear forwards; }
+        @keyframes toastSlideIn { from { opacity: 0; transform: translateX(40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toastSlideOut { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(40px) scale(0.95); } }
+        @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
     </style>
 </head>
 <body>
@@ -113,7 +141,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="u : ${users}">
+            <tr th:each="u : ${users}" th:attr="data-user-id=${u.id}">
                 <td th:text="${u.id}" style="color:#86868b;"></td>
                 <td th:text="${u.username}" style="font-weight:600;"></td>
                 <td th:text="${u.nom}" style="color:#444;"></td>
@@ -137,11 +165,10 @@
                                 class="btn-action" title="Edit User">
                             <i class="far fa-edit"></i>
                         </button>
-                        <a th:href="@{'/admin/gerants/delete/' + ${u.id}}"
-                           onclick="return confirm('Supprimer cet utilisateur ?')"
-                           class="btn-delete-action" title="Delete User">
+                        <button type="button" class="btn-delete-action" title="Delete User"
+                                th:attr="onclick=|openDeleteModal(${u.id}, '${u.username}')|">
                             <i class="far fa-trash-alt"></i>
-                        </a>
+                        </button>
                     </div>
                     <span th:if="${u.role == 'ADMIN'}" style="color:#ccc; font-size:13px;">protégé</span>
                 </td>
@@ -154,12 +181,27 @@
     </div>
 </div>
 
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)closeModal('deleteModal')">
+    <div class="modal modal-delete">
+        <div class="icon-warning"><i class="fas fa-trash-alt"></i></div>
+        <h2>Delete User</h2>
+        <p id="deleteModalText"></p>
+        <form onsubmit="confirmDelete(event)">
+            <div class="modal-actions" style="justify-content:center;">
+                <button type="button" class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+                <button type="submit" class="btn-delete-confirm" id="deleteSubmitBtn">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Add Modal -->
 <div class="modal-overlay" id="addModal" onclick="closeOnOverlay(event, 'addModal')">
     <div class="modal">
         <button class="modal-close" onclick="closeModal('addModal')"><i class="fas fa-times"></i></button>
         <h2>Ajouter un Agent</h2>
-        <form th:action="@{/admin/gerants/save}" method="post">
+        <form id="addUserForm" th:action="@{/admin/gerants/save}" method="post" onsubmit="submitAddUser(event)">
             <div class="form-group">
                 <label>Nom d'utilisateur</label>
                 <input type="text" name="username" class="form-input" placeholder="ex: jean.dupont" required>
@@ -182,7 +224,7 @@
     <div class="modal">
         <button class="modal-close" onclick="closeModal('editModal')"><i class="fas fa-times"></i></button>
         <h2>Modifier l'utilisateur</h2>
-        <form th:action="@{/admin/gerants/update}" method="post">
+        <form id="editUserForm" th:action="@{/admin/gerants/update}" method="post" onsubmit="submitEditUser(event)">
             <input type="hidden" name="id" id="editUserId">
             <div class="form-group">
                 <label>Nom d'utilisateur</label>
@@ -238,14 +280,107 @@
         if (event.target === document.getElementById(id)) closeModal(id);
     }
 
+    let deleteUserId = null;
+    function openDeleteModal(id, username) {
+        deleteUserId = id;
+        document.getElementById('deleteModalText').innerHTML = `Are you sure you want to delete user "<strong>${username}</strong>"? This action is irreversible.`;
+        document.getElementById('deleteModal').classList.add('open');
+    }
+
+    async function confirmDelete(e) {
+        e.preventDefault();
+        const btn = document.getElementById('deleteSubmitBtn');
+        btn.disabled = true; btn.textContent = 'Deleting...';
+        try {
+            const res = await fetch('/admin/gerants/delete/' + deleteUserId, { credentials: 'same-origin' });
+            if (res.ok || res.redirected) {
+                closeModal('deleteModal');
+                const username = document.getElementById('deleteModalText').querySelector('strong').textContent;
+                showToast('User deleted', `"${username}" has been removed.`);
+                const row = document.querySelector(`[data-user-id="${deleteUserId}"]`);
+                if (row) row.remove();
+            } else {
+                alert('Error deleting user.');
+            }
+        } catch { alert('Network error.'); }
+        btn.disabled = false; btn.textContent = 'Delete';
+    }
+
+    function showToast(title, message) {
+        let container = document.getElementById('toastWrapper');
+        if (!container) { container = document.createElement('div'); container.id = 'toastWrapper'; container.className = 'toast-container'; document.body.appendChild(container); }
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <div class="toast-icon"><i class="far fa-check-circle"></i></div>
+            <div class="toast-content"><strong class="toast-title">${title}</strong><p class="toast-msg">${message}</p></div>
+            <button class="toast-close" onclick="this.closest('.toast').classList.add('closing');setTimeout(()=>this.closest('.toast').remove(),300)"><i class="fas fa-times"></i></button>
+            <div class="toast-progress"></div>`;
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentElement) { toast.classList.add('closing'); setTimeout(() => toast.remove(), 300); } }, 3000);
+    }
+
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             closeModal('addModal');
             closeModal('editModal');
+            closeModal('deleteModal');
         }
     });
 
-    // Auto-open add modal if there's a userError (failed add attempt)
+    function formToParams(form) {
+        return new URLSearchParams(new FormData(form)).toString();
+    }
+
+    async function submitAddUser(e) {
+        e.preventDefault();
+        const form = document.getElementById('addUserForm');
+        const btn = form.querySelector('[type="submit"]');
+        const username = form.querySelector('[name="username"]').value;
+        btn.disabled = true; btn.textContent = 'Adding...';
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formToParams(form),
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            if (res.ok || res.redirected) {
+                closeModal('addModal');
+                form.reset();
+                showToast('User added', `"${username}" has been created successfully.`);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                alert('Error adding user.');
+            }
+        } catch { alert('Network error.'); }
+        btn.disabled = false; btn.textContent = 'Ajouter';
+    }
+
+    async function submitEditUser(e) {
+        e.preventDefault();
+        const form = document.getElementById('editUserForm');
+        const btn = form.querySelector('[type="submit"]');
+        const username = document.getElementById('editUsername').value;
+        btn.disabled = true; btn.textContent = 'Saving...';
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: formToParams(form),
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            if (res.ok || res.redirected) {
+                closeModal('editModal');
+                showToast('User updated', `"${username}" has been saved successfully.`);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                alert('Error saving user.');
+            }
+        } catch { alert('Network error.'); }
+        btn.disabled = false; btn.textContent = 'Enregistrer';
+    }
+
     const hasError = /*[[${userError != null}]]*/ false;
     if (hasError) openAddModal();
 </script>

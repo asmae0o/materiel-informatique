@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/search", "/categorie/**", "/produit/**", "/cart/**", "/login", "/signup", "/css/**", "/js/**", "/img/**", "/uploads/**").permitAll()
-                        .requestMatchers("/panier", "/checkout", "/compte/**", "/order-confirmation").authenticated()
+                        .requestMatchers("/panier", "/checkout", "/compte/**").authenticated()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/gerant/**").hasAnyAuthority("ADMIN", "GERANT")
                         .anyRequest().authenticated()
@@ -46,7 +46,8 @@ public class SecurityConfig {
                             } else if (roles.contains("GERANT")) {
                                 response.sendRedirect("/gerant/dashboard");
                             } else {
-                                response.sendRedirect("/");
+                                String redirectTo = request.getParameter("redirectTo");
+                                response.sendRedirect((redirectTo != null && !redirectTo.isBlank()) ? redirectTo : "/");
                             }
                         })
                         .failureUrl("/?loginError")

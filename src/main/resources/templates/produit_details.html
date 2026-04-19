@@ -46,7 +46,7 @@
         .btn-add-cart:hover { background: #5e5e63; transform: scale(1.08); }
 
         h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 700; color: #1d1d1f; letter-spacing: -0.02em; line-height: 1.15; }
-        .product-price { font-size: 26px; font-weight: 700; color: #5e5e63; letter-spacing: -0.02em; margin-bottom: 24px; }
+        .product-price { font-size: 26px; font-weight: 700; color: #5e5e63; letter-spacing: -0.02em; }
 
         .description { font-size: 15px; color: #5e5e63; line-height: 1.6; margin-bottom: 30px; }
 
@@ -59,19 +59,32 @@
         .stock-warning { color: #b05a00; background: #fce8e6; padding: 8px 16px; border-radius: 999px; }
         .admin-note { margin-top: 24px; font-size: 13px; color: #5e5e63; font-weight: 500; }
         
-        /* Reviews details section at bottom */
-        .reviews-section { margin-top: 40px; max-width: 800px; }
-        .reviews-section h2 { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
-        .review-card { background: white; padding: 24px; border-radius: 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .review-card strong { font-size: 15px; }
+        /* Reviews section */
+        .reviews-section { margin-top: 60px; display: flex; gap: 40px; align-items: flex-start; }
+        .reviews-list { flex: 1; min-width: 0; }
+        .reviews-list h2 { font-size: 22px; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.02em; }
+        .review-card { background: white; padding: 22px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-bottom: 14px; }
+        .review-card strong { font-size: 14px; font-weight: 600; }
         .review-card .stars { color: #f5c518; font-size: 12px; margin-left: 10px; }
-        .review-card p { margin: 10px 0 0 0; color: #5e5e63; font-size: 14px; line-height: 1.5; }
-        
-        .form-avis { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-top: 30px; }
-        .form-avis input, .form-avis textarea, .form-avis select { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #e0e0e5; border-radius: 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; }
-        .form-avis input:focus, .form-avis textarea:focus, .form-avis select:focus { border-color: #1a1c1d; }
-        .btn-submit { background: #1a1c1d; color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .review-card p { margin: 8px 0 0 0; color: #5e5e63; font-size: 14px; line-height: 1.5; }
+        .no-reviews { color: #5e5e63; font-size: 14px; }
+
+        .review-form-col { width: 420px; flex-shrink: 0; }
+        .review-form-col h2 { font-size: 22px; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.02em; }
+        .form-avis { background: white; padding: 28px; border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.03); }
+        .avis-input { width: 100%; padding: 12px 16px; margin-bottom: 12px; border: 1px solid #e0e0e5; border-radius: 12px; font-family: inherit; font-size: 14px; box-sizing: border-box; outline: none; background: #f9f9fb; transition: 0.2s; }
+        .avis-input:focus { border-color: #1a1c1d; background: #fff; }
+        .btn-submit { background: #1a1c1d; color: white; padding: 13px 32px; border: none; border-radius: 999px; font-weight: 600; cursor: pointer; font-size: 14px; font-family: inherit; transition: 0.2s; }
         .btn-submit:hover { background: #000; }
+
+        .login-cta { background: white; border-radius: 20px; padding: 36px 28px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.03); }
+        .login-cta .icon { width: 52px; height: 52px; background: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 20px; color: #5e5e63; }
+        .login-cta h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+        .login-cta p { margin: 0 0 20px; font-size: 13px; color: #5e5e63; line-height: 1.5; }
+        .btn-login-cta { display: inline-block; background: #1a1c1d; color: #fff; padding: 11px 26px; border-radius: 999px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+        .btn-login-cta:hover { background: #000; }
+        .btn-signup-cta { display: inline-block; background: none; color: #1a1c1d; padding: 11px 26px; border-radius: 999px; font-size: 14px; font-weight: 600; border: 1px solid rgba(0,0,0,0.15); cursor: pointer; font-family: inherit; margin-left: 8px; }
+        .btn-signup-cta:hover { border-color: #1a1c1d; }
         
         /* Related Products */
         .related-section { margin-top: 60px; max-width: 1400px; margin-bottom: 20px;}
@@ -145,7 +158,11 @@
             </div>
 
             <h1 th:text="${produit.nom}">Nom du Produit</h1>
-            <div class="product-price" th:text="${produit.prix} + ' MAD'"></div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+                <div class="product-price" style="margin-bottom:0;" th:text="${produit.prix} + ' MAD'"></div>
+                <span th:if="${produit.remise > 0}" th:text="'-' + ${produit.remise} + '%'" style="background:#1a1c1d;color:#fff;font-size:12px;font-weight:700;padding:5px 11px;border-radius:8px;"></span>
+                <span th:if="${produit.remise > 0}" th:text="${produit.prixOriginal} + ' MAD'" style="font-size:14px;color:#5e5e63;text-decoration:line-through;"></span>
+            </div>
 
             <p class="description" th:text="${produit.description}">Description détaillée de ce produit...</p>
 
@@ -194,37 +211,58 @@
     </div>
 
     <div class="reviews-section" id="reviews">
-        <h2>Customer Reviews</h2>
 
-        <div th:each="a : ${avisList}" class="review-card">
-            <div>
-                <strong th:text="${a.clientNom}">Client</strong>
-                <span class="stars">
-                    <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                        <i th:class="${i <= a.note ? 'fas fa-star' : 'far fa-star'}"></i>
-                    </th:block>
-                </span>
+        <!-- Left: reviews list -->
+        <div class="reviews-list">
+            <h2>Customer Reviews</h2>
+            <div th:each="a : ${avisList}" class="review-card">
+                <div>
+                    <strong th:text="${a.clientNom}">Client</strong>
+                    <span class="stars">
+                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                            <i th:class="${i <= a.note ? 'fas fa-star' : 'far fa-star'}"></i>
+                        </th:block>
+                    </span>
+                </div>
+                <p th:text="${a.commentaire}"></p>
             </div>
-            <p th:text="${a.commentaire}"></p>
+            <p th:if="${#lists.isEmpty(avisList)}" class="no-reviews">No reviews yet. Be the first!</p>
         </div>
-        <p th:if="${#lists.isEmpty(avisList)}" style="color: #888; margin-bottom: 30px;">Aucun avis pour le moment. Soyez le premier !</p>
 
-        <h3>Write a Review</h3>
-        <form th:action="@{'/produit/' + ${produit.id} + '/avis'}" method="post" class="form-avis">
-            <input type="text" name="clientNom" placeholder="Votre nom (ex: Asmae)" required>
+        <!-- Right: write a review -->
+        <div class="review-form-col">
+            <h2>Write a Review</h2>
 
-            <select name="note" required>
-                <option value="5">5 Étoiles - Excellent</option>
-                <option value="4">4 Étoiles - Très bien</option>
-                <option value="3">3 Étoiles - Moyen</option>
-                <option value="2">2 Étoiles - Décevant</option>
-                <option value="1">1 Étoile - Mauvais</option>
-            </select>
+            <div sec:authorize="isAuthenticated() and !hasAnyAuthority('GERANT','ADMIN')">
+                <form th:action="@{'/produit/' + ${produit.id} + '/avis'}" method="post" class="form-avis">
+                    <input type="text" name="clientNom" class="avis-input"
+                           th:value="${currentUser?.nom != null ? currentUser.nom : ''}"
+                           placeholder="Your name" required>
+                    <select name="note" class="avis-input" required>
+                        <option value="5">★★★★★ — Excellent</option>
+                        <option value="4">★★★★☆ — Very Good</option>
+                        <option value="3">★★★☆☆ — Average</option>
+                        <option value="2">★★☆☆☆ — Poor</option>
+                        <option value="1">★☆☆☆☆ — Terrible</option>
+                    </select>
+                    <textarea name="commentaire" rows="5" class="avis-input" placeholder="Share your experience..." required></textarea>
+                    <button type="submit" class="btn-submit">Submit Review</button>
+                </form>
+            </div>
 
-            <textarea name="commentaire" rows="4" placeholder="Partagez votre expérience..." required></textarea>
+            <div sec:authorize="!isAuthenticated()">
+                <div class="login-cta">
+                    <div class="icon"><i class="fas fa-user-lock"></i></div>
+                    <h3>Sign in to leave a review</h3>
+                    <p>Your opinion helps other buyers make better decisions.</p>
+                    <div>
+                        <button class="btn-login-cta" onclick="openModal('loginModal')">Sign In</button>
+                        <button class="btn-signup-cta" onclick="openModal('signupModal')">Create Account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <button type="submit" class="btn-submit">Submit Review</button>
-        </form>
     </div>
 
 </div>
