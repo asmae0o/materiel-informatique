@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>MyHardware | Nouveau Produit</title>
+    <title>MyHardware | Produit</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background: #f5f5f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
@@ -17,9 +17,11 @@
 <body>
 
 <div class="form-container">
-    <h2>📦 Nouveau Matériel</h2>
+    <h2 th:text="${produit.id != null ? '✏️ Modifier le Produit' : '📦 Nouveau Matériel'}">Produit</h2>
 
-    <form th:action="@{/gerant/save}" th:object="${produit}" method="post">
+    <form th:action="@{${formAction ?: '/gerant/save'}}" th:object="${produit}" method="post" enctype="multipart/form-data">
+
+        <input type="hidden" th:if="${produit.id != null}" th:field="*{id}">
 
         <label>Nom du produit</label>
         <input type="text" th:field="*{nom}" required>
@@ -39,22 +41,55 @@
         </div>
 
         <label>Marque</label>
-        <select th:field="*{marque}" required>
+        <select name="marque" id="marque" required>
             <option value="">-- Choisir Marque --</option>
-            <option th:if="${marques != null}" th:each="m : ${marques}" th:value="${m.id}" th:text="${m.nom}"></option>
+            <option th:each="m : ${marques}"
+                    th:value="${m.id}"
+                    th:text="${m.nom}"
+                    th:selected="${produit.marque != null and produit.marque.id == m.id}">
+            </option>
         </select>
 
         <label>Catégorie</label>
-        <select th:field="*{categorie}" required>
+        <select name="categorie" id="categorie" required>
             <option value="">-- Choisir Catégorie --</option>
-            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.nom}"></option>
+            <option th:each="c : ${categories}"
+                    th:value="${c.id}"
+                    th:text="${c.nom}"
+                    th:selected="${produit.categorie != null and produit.categorie.id == c.id}">
+            </option>
         </select>
+
+        <label>Image du produit</label>
+        <div id="image-preview-container" th:style="${produit.getPrimaryImage() != null ? 'margin-bottom: 10px; display: flex; gap: 8px; flex-wrap: wrap;' : 'display: none; margin-bottom: 10px; gap: 8px; flex-wrap: wrap;'}">
+            <div>
+                <img id="image-preview" th:src="${produit.getPrimaryImage() != null ? produit.getPrimaryImage() : ''}" alt="" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1px solid #d2d2d7;">
+            </div>
+        </div>
+        <input type="file" id="image-input" name="images" accept="image/*" multiple style="width: 100%; padding: 10px; margin: 8px 0 20px 0; border: 1px solid #d2d2d7; border-radius: 12px; box-sizing: border-box; font-family: inherit;">
 
         <button type="submit">Enregistrer</button>
     </form>
 
-    <a th:href="@{/gerant/dashboard}" class="cancel-link">Annuler</a>
+    <a th:href="@{${cancelUrl ?: '/gerant/dashboard'}}" class="cancel-link">Annuler</a>
 </div>
+
+<script>
+    document.getElementById('image-input').addEventListener('change', function(event) {
+        if(event.target.files && event.target.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var previewImg = document.getElementById('image-preview');
+                var previewContainer = document.getElementById('image-preview-container');
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'flex';
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    });
+</script>
+
+
 
 </body>
 </html>

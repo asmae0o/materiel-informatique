@@ -5,17 +5,23 @@ import com.ecommerce.materiel_informatique.service.*;
 import com.ecommerce.materiel_informatique.repository.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 @Controller
 public class ProduitController {
@@ -23,16 +29,13 @@ public class ProduitController {
     @Autowired private ProduitService produitService;
     @Autowired private MarqueService marqueService;
     @Autowired private CategorieService categorieService;
-    @Autowired private GerantRepository gerantRepository;
     @Autowired private AvisRepository avisRepository;
     @Autowired private CommandeRepository commandeRepository;
-    @Autowired private InMemoryUserDetailsManager userDetailsManager;
-    private final Set<String> clientUsers = ConcurrentHashMap.newKeySet();
+    @Autowired private AppUserRepository appUserRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
 
-    public ProduitController() {
-        // Default client account available at startup
-        clientUsers.add("asmae");
-    }
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     // ==========================================
     // --- ROUTES CLIENTS (Catalogue & Profil) ---
@@ -65,6 +68,17 @@ public class ProduitController {
         if (produit == null) return "redirect:/";
         model.addAttribute("produit", produit);
         model.addAttribute("avisList", avisRepository.findByProduitId(id));
+        
+        List<Produit> related = new ArrayList<>();
+        if (produit.getCategorie() != null) {
+            related = produitService.getProduitsByCategorie(produit.getCategorie().getId())
+                    .stream()
+                    .filter(p -> !p.getId().equals(id))
+                    .limit(4)
+                    .toList();
+        }
+        model.addAttribute("relatedProducts", related);
+
         return "produit_details";
     }
 
@@ -84,13 +98,26 @@ public class ProduitController {
 
     @GetMapping("/compte")
     public String monCompte(Model model, Principal principal) {
-        String username = principal != null ? principal.getName() : "Asmae";
+        String username = principal != null ? principal.getName() : "";
         model.addAttribute("commandes", commandeRepository.findByClientNomOrderByDateCommandeDesc(username));
+        appUserRepository.findByUsername(username).ifPresent(u -> model.addAttribute("currentUser", u));
         return "client_compte";
     }
 
     @PostMapping("/compte/update")
-    public String updateProfil(@RequestParam String nom, @RequestParam String adresse) {
+    public String updateProfil(
+            @RequestParam(required = false) String nom,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String telephone,
+            Principal principal) {
+        if (principal != null) {
+            appUserRepository.findByUsername(principal.getName()).ifPresent(u -> {
+                u.setNom(nom != null && !nom.isBlank() ? nom.trim() : null);
+                u.setEmail(email != null && !email.isBlank() ? email.trim() : null);
+                u.setTelephone(telephone != null && !telephone.isBlank() ? telephone.trim() : null);
+                appUserRepository.save(u);
+            });
+        }
         return "redirect:/compte?success";
     }
 
@@ -241,11 +268,22 @@ public class ProduitController {
         model.addAttribute("produit", new Produit());
         model.addAttribute("marques", marqueService.getAllMarques());
         model.addAttribute("categories", categorieService.getAllCategories());
+        model.addAttribute("formAction", "/gerant/save");
+        model.addAttribute("cancelUrl", "/gerant/dashboard");
         return "form_produit";
     }
 
     @PostMapping("/gerant/save")
-    public String saveProduit(@ModelAttribute("produit") Produit produit) {
+    public String saveProduit(@ModelAttribute("produit") Produit produit,
+                              @RequestParam(value = "images", required = false) List<MultipartFile> images) throws IOException {
+        // For edits, preserve existing images
+        if (produit.getId() != null) {
+            Produit existing = produitService.getProduitById(produit.getId());
+            if (existing != null && produit.getImageUrls().isEmpty()) {
+                produit.setImageUrls(new ArrayList<>(new java.util.LinkedHashSet<>(existing.getImageUrls())));
+            }
+        }
+        saveImages(produit, images);
         produitService.saveProduit(produit);
         return "redirect:/gerant/dashboard";
     }
@@ -304,40 +342,65 @@ public class ProduitController {
     }
 
     @GetMapping("/admin/gerants")
-    public String manageGerants(Model model) {
-        model.addAttribute("gerants", gerantRepository.findAll());
-        model.addAttribute("clients", clientUsers.stream().sorted().toList());
+    public String manageGerants(@RequestParam(required = false) String role, Model model) {
+        var users = appUserRepository.findAll().stream()
+                .filter(u -> !u.getRole().equals("ADMIN"))
+                .filter(u -> role == null || u.getRole().equals(role))
+                .toList();
+        model.addAttribute("users", users);
+        model.addAttribute("activeFilter", role);
         return "admin_users";
     }
 
     @GetMapping("/admin/users")
-    public String manageUsers(Model model) {
-        return manageGerants(model);
+    public String manageUsers(@RequestParam(required = false) String role, Model model) {
+        return manageGerants(role, model);
     }
 
     @PostMapping("/admin/gerants/save")
-    public String saveGerant(@RequestParam("nom") String nom, @RequestParam("email") String email) {
-        Gerant g = new Gerant(nom, email);
-        gerantRepository.save(g);
+    public String saveGerant(@RequestParam String username, @RequestParam String password,
+                             @RequestParam String role, RedirectAttributes redirectAttributes) {
+        String clean = username == null ? "" : username.trim().toLowerCase();
+        if (appUserRepository.existsByUsername(clean)) {
+            redirectAttributes.addFlashAttribute("userError", "Ce nom d'utilisateur existe déjà.");
+            return "redirect:/admin/gerants";
+        }
+        appUserRepository.save(new AppUser(clean, passwordEncoder.encode(password), role));
         return "redirect:/admin/gerants";
     }
 
     @PostMapping("/admin/users/save")
-    public String saveUser(@RequestParam("nom") String nom, @RequestParam("email") String email) {
-        Gerant g = new Gerant(nom, email);
-        gerantRepository.save(g);
-        return "redirect:/admin/users";
+    public String saveUser(@RequestParam String username, @RequestParam String password,
+                           @RequestParam String role, RedirectAttributes redirectAttributes) {
+        return saveGerant(username, password, role, redirectAttributes);
+    }
+
+    @PostMapping("/admin/gerants/update")
+    public String adminUpdateGerant(@RequestParam Long id, @RequestParam String username,
+                                    @RequestParam String role,
+                                    @RequestParam(required = false) String nom,
+                                    @RequestParam(required = false) String email,
+                                    @RequestParam(required = false) String telephone) {
+        appUserRepository.findById(id).ifPresent(u -> {
+            u.setUsername(username != null ? username.trim().toLowerCase() : u.getUsername());
+            u.setRole(role);
+            u.setNom(nom != null && !nom.isBlank() ? nom.trim().toLowerCase() : null);
+            u.setEmail(email != null && !email.isBlank() ? email.trim().toLowerCase() : null);
+            u.setTelephone(telephone != null && !telephone.isBlank() ? telephone.trim() : null);
+            appUserRepository.save(u);
+        });
+        return "redirect:/admin/gerants";
     }
 
     @GetMapping("/admin/gerants/delete/{id}")
     public String deleteGerant(@PathVariable Long id) {
-        gerantRepository.deleteById(id);
+        appUserRepository.deleteById(id);
         return "redirect:/admin/gerants";
     }
 
     @GetMapping("/admin/users/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
-        gerantRepository.deleteById(id);
+        appUserRepository.deleteById(id);
         return "redirect:/admin/users";
     }
 
@@ -354,14 +417,88 @@ public class ProduitController {
     }
 
     @GetMapping("/admin/commandes")
-    public String viewAllCommandes() {
+    public String viewAllCommandes(Model model) {
+        model.addAttribute("commandes", commandeRepository.findAll());
         return "admin_commandes";
+    }
+
+    @PostMapping("/admin/commandes/statut/{id}")
+    public String updateCommandeStatut(@PathVariable Long id, @RequestParam String statut) {
+        commandeRepository.findById(id).ifPresent(cmd -> {
+            cmd.setStatut(statut);
+            commandeRepository.save(cmd);
+        });
+        return "redirect:/admin/commandes";
     }
 
     @GetMapping("/admin/products")
     public String adminProducts(Model model) {
         model.addAttribute("produits", produitService.getAllProduits());
+        model.addAttribute("marques", marqueService.getAllMarques());
+        model.addAttribute("categories", categorieService.getAllCategories());
         return "admin_products";
+    }
+
+    @GetMapping("/admin/products/new")
+    public String adminNewProduct(Model model) {
+        model.addAttribute("produit", new Produit());
+        model.addAttribute("marques", marqueService.getAllMarques());
+        model.addAttribute("categories", categorieService.getAllCategories());
+        model.addAttribute("formAction", "/admin/products/save");
+        model.addAttribute("cancelUrl", "/admin/products");
+        return "form_produit";
+    }
+
+    @GetMapping("/admin/products/edit/{id}")
+    public String adminEditProduct(@PathVariable Long id, Model model) {
+        Produit produit = produitService.getProduitById(id);
+        if (produit == null) return "redirect:/admin/products";
+        model.addAttribute("produit", produit);
+        model.addAttribute("marques", marqueService.getAllMarques());
+        model.addAttribute("categories", categorieService.getAllCategories());
+        model.addAttribute("formAction", "/admin/products/save");
+        model.addAttribute("cancelUrl", "/admin/products");
+        return "form_produit";
+    }
+
+    @PostMapping("/admin/products/save")
+    public String adminSaveProduct(@ModelAttribute("produit") Produit produit,
+                                   @RequestParam(value = "images", required = false) List<MultipartFile> images,
+                                   @RequestParam(value = "primaryImageUrl", required = false) String primaryImageUrl,
+                                   @RequestParam(value = "imageOrder", required = false) String imageOrder) throws IOException {
+        // For edits, preserve existing images
+        if (produit.getId() != null) {
+            Produit existing = produitService.getProduitById(produit.getId());
+            if (existing != null && produit.getImageUrls().isEmpty()) {
+                produit.setImageUrls(new ArrayList<>(new java.util.LinkedHashSet<>(existing.getImageUrls())));
+            }
+        }
+
+        // Apply drag-and-drop image order (also handles deletions — only listed URLs are kept)
+        if (imageOrder != null && !imageOrder.isBlank()) {
+            List<String> current = produit.getImageUrls();
+            List<String> reordered = new ArrayList<>();
+            for (String url : imageOrder.split("\\|\\|")) {
+                String u = url.trim();
+                if (!u.isEmpty() && current.contains(u)) reordered.add(u);
+            }
+            produit.setImageUrls(reordered);
+        } else if (primaryImageUrl != null && !primaryImageUrl.isBlank()) {
+            // Fallback: just move primary to front
+            List<String> urls = produit.getImageUrls();
+            if (urls.remove(primaryImageUrl)) urls.add(0, primaryImageUrl);
+        }
+
+        // Append new uploads after the ordered list
+        saveImages(produit, images);
+        produitService.saveProduit(produit);
+        return "redirect:/admin/products";
+    }
+
+    @GetMapping("/admin/products/delete/{id}")
+    public String adminDeleteProduct(@PathVariable Long id) {
+        produitService.deleteProduit(id);
+        return "redirect:/admin/products";
     }
 
     @GetMapping("/admin/categories")
@@ -375,6 +512,23 @@ public class ProduitController {
         Categorie cat = new Categorie();
         cat.setNom(nom);
         categorieService.saveCategorie(cat);
+        return "redirect:/admin/categories";
+    }
+
+    @GetMapping("/admin/categories/edit/{id}")
+    public String adminEditCategorieForm(@PathVariable Long id, Model model) {
+        model.addAttribute("categories", categorieService.getAllCategories());
+        model.addAttribute("editCategorie", categorieService.getCategorieById(id));
+        return "admin_categories";
+    }
+
+    @PostMapping("/admin/categories/update")
+    public String adminUpdateCategorie(@RequestParam Long id, @RequestParam String nom) {
+        Categorie cat = categorieService.getCategorieById(id);
+        if (cat != null) {
+            cat.setNom(nom);
+            categorieService.saveCategorie(cat);
+        }
         return "redirect:/admin/categories";
     }
 
@@ -419,9 +573,12 @@ public class ProduitController {
             @RequestParam String username,
             @RequestParam String password,
             @RequestParam String confirmPassword,
+            @RequestParam(required = false) String nom,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String telephone,
             RedirectAttributes redirectAttributes) {
 
-        String cleanUsername = username == null ? "" : username.trim();
+        String cleanUsername = username == null ? "" : username.trim().toLowerCase();
 
         if (cleanUsername.isEmpty() || password == null || password.isBlank()) {
             redirectAttributes.addFlashAttribute("signupError", "Nom d'utilisateur et mot de passe sont obligatoires.");
@@ -433,18 +590,37 @@ public class ProduitController {
             return "redirect:/signup";
         }
 
-        if (userDetailsManager.userExists(cleanUsername)) {
-            redirectAttributes.addFlashAttribute("signupError", "Ce nom d'utilisateur existe deja.");
+        if (appUserRepository.existsByUsername(cleanUsername)) {
+            redirectAttributes.addFlashAttribute("signupError", "Ce nom d'utilisateur existe déjà.");
             return "redirect:/signup";
         }
 
-        userDetailsManager.createUser(User.withUsername(cleanUsername)
-                .password("{noop}" + password)
-                .roles("CLIENT")
-                .build());
+        AppUser newUser = new AppUser(cleanUsername, passwordEncoder.encode(password), "CLIENT");
+        newUser.setNom(nom != null && !nom.isBlank() ? nom.trim().toLowerCase() : null);
+        newUser.setEmail(email != null && !email.isBlank() ? email.trim().toLowerCase() : null);
+        newUser.setTelephone(telephone != null && !telephone.isBlank() ? telephone.trim() : null);
+        appUserRepository.save(newUser);
 
-        clientUsers.add(cleanUsername);
+        return "redirect:/";
+    }
 
-        return "redirect:/login?registered";
+    private void saveImages(Produit produit, List<MultipartFile> images) throws IOException {
+        if (images == null || images.isEmpty()) return;
+        if (produit.getImageUrls() == null) {
+            produit.setImageUrls(new ArrayList<>());
+        }
+        Path uploadPath = Paths.get(uploadDir);
+        Files.createDirectories(uploadPath);
+        List<String> newUrls = new ArrayList<>();
+        for (MultipartFile image : images) {
+            if (image != null && !image.isEmpty()) {
+                String filename = UUID.randomUUID() + "_" + image.getOriginalFilename();
+                Files.copy(image.getInputStream(), uploadPath.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+                newUrls.add("/uploads/" + filename);
+            }
+        }
+        if (!newUrls.isEmpty()) {
+            produit.getImageUrls().addAll(0, newUrls);
+        }
     }
 }

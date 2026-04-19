@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
     <title>Categories | Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -42,8 +43,12 @@
         table { width: 100%; border-collapse: collapse; }
         th { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 15px 10px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08);}
         td { padding: 20px 10px; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 15px; font-weight: 500; color: var(--text-main);}
-        .btn-delete { color: #c1c6d6; text-decoration: none; font-size: 16px; transition: 0.2s;}
-        .btn-delete:hover { color: #d93025; }
+        .actions-cell { display: flex; align-items: center; gap: 8px; }
+        .btn-action { color: #9ca3af; background: transparent; border: none; cursor: pointer; font-size: 15px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; text-decoration: none; padding: 0; outline: none; }
+        .btn-action:hover { background: #f3f4f6; color: #4b5563; }
+        .btn-delete-action { color: #9ca3af; background: transparent; border: none; cursor: pointer; font-size: 15px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; padding: 0; outline: none; text-decoration: none; }
+        .btn-delete-action:hover { background: #fee2e2; color: #ef4444; }
+        .edit-card { background: #fff3cd; padding: 20px 30px; border-radius: 16px; margin-bottom: 30px; border: 1px solid #ffc107; }
     </style>
 </head>
 <body>
@@ -51,9 +56,7 @@
 <div th:replace="~{fragments/admin_sidebar :: adminSidebar('categories')}"></div>
 
 <div class="main">
-    <div class="topbar">
-        <div style="font-weight: 700; font-size: 18px;">The Gallery</div>
-    </div>
+
 
     <div class="content-area">
         <div class="main-header">
@@ -61,7 +64,18 @@
             <p>Organize your products into collections.</p>
         </div>
 
-        <div class="action-card">
+        <!-- Edit form shown when editing -->
+        <div class="edit-card" th:if="${editCategorie != null}">
+            <h3 style="margin-top:0;">✏️ Modifier la Catégorie</h3>
+            <form th:action="@{/admin/categories/update}" method="post" class="form-row">
+                <input type="hidden" name="id" th:value="${editCategorie.id}">
+                <input type="text" name="nom" th:value="${editCategorie.nom}" required class="form-input">
+                <button type="submit" class="btn-primary">Enregistrer</button>
+                <a th:href="@{/admin/categories}" style="padding: 14px 20px; color: var(--text-muted); text-decoration: none; font-size: 14px;">Annuler</a>
+            </form>
+        </div>
+
+        <div class="action-card" th:if="${editCategorie == null}">
             <h3>Create New Category</h3>
             <form th:action="@{/admin/categories/save}" method="post" class="form-row">
                 <input type="text" name="nom" placeholder="E.g., Peripherals, Components..." required class="form-input">
@@ -74,7 +88,7 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Action</th>
+                <th style="color: #8fa0b5; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">ACTIONS</th>
             </tr>
             </thead>
             <tbody>
@@ -82,7 +96,10 @@
                 <td th:text="'#CAT-' + ${cat.id}" style="color: var(--text-muted); font-weight: 400;"></td>
                 <td th:text="${cat.nom}"></td>
                 <td>
-                    <a th:href="@{'/admin/categories/delete/' + ${cat.id}}" class="btn-delete"><i class="fas fa-trash"></i></a>
+                    <div class="actions-cell">
+                        <a th:href="@{'/admin/categories/edit/' + ${cat.id}}" class="btn-action" title="Edit Category"><i class="far fa-edit"></i></a>
+                        <a th:href="@{'/admin/categories/delete/' + ${cat.id}}" class="btn-delete-action" onclick="return confirm('Supprimer cette catégorie ?')" title="Delete Category"><i class="far fa-trash-alt"></i></a>
+                    </div>
                 </td>
             </tr>
             </tbody>

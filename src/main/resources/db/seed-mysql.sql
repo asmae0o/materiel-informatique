@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS gerant;
+
 INSERT INTO marque (nom)
 SELECT 'Apple'
 WHERE NOT EXISTS (SELECT 1 FROM marque WHERE nom = 'Apple');
@@ -63,3 +65,24 @@ SELECT 'PC Gamer Asus ROG Strix', 'Intel Core i9, 32 Go RAM, 1 To NVMe, refroidi
        (SELECT id FROM categorie WHERE nom = 'PC de Bureau' LIMIT 1),
        (SELECT id FROM marque WHERE nom = 'Asus' LIMIT 1)
 WHERE NOT EXISTS (SELECT 1 FROM produit WHERE nom = 'PC Gamer Asus ROG Strix');
+
+-- Add default images for products
+INSERT INTO produit_images (produit_id, image_url)
+SELECT p.id, 'https://via.placeholder.com/500x500?text=MacBook+Pro+14' FROM produit p WHERE p.nom = 'MacBook Pro 14" M3' AND NOT EXISTS (SELECT 1 FROM produit_images WHERE produit_id = p.id)
+LIMIT 1;
+
+INSERT INTO produit_images (produit_id, image_url)
+SELECT p.id, 'https://via.placeholder.com/500x500?text=MX+Master+Mouse' FROM produit p WHERE p.nom = 'Souris Ergonomique MX Master 3S' AND NOT EXISTS (SELECT 1 FROM produit_images WHERE produit_id = p.id)
+LIMIT 1;
+
+INSERT INTO produit_images (produit_id, image_url)
+SELECT p.id, 'https://via.placeholder.com/500x500?text=RTX+4070' FROM produit p WHERE p.nom = 'Carte Graphique GeForce RTX 4070' AND NOT EXISTS (SELECT 1 FROM produit_images WHERE produit_id = p.id)
+LIMIT 1;
+
+INSERT INTO produit_images (produit_id, image_url)
+SELECT p.id, 'https://via.placeholder.com/500x500?text=Dell+Monitor+4K' FROM produit p WHERE p.nom = 'Ecran Dell UltraSharp 27" 4K' AND NOT EXISTS (SELECT 1 FROM produit_images WHERE produit_id = p.id)
+LIMIT 1;
+
+INSERT INTO produit_images (produit_id, image_url)
+SELECT p.id, 'https://via.placeholder.com/500x500?text=ASUS+ROG+Strix' FROM produit p WHERE p.nom = 'PC Gamer Asus ROG Strix' AND NOT EXISTS (SELECT 1 FROM produit_images WHERE produit_id = p.id)
+LIMIT 1;

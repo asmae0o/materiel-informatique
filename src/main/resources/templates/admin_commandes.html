@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
     <title>Admin | Toutes les Commandes</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -21,10 +22,9 @@
         .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { color: #86868b; font-weight: 600; }
-        .status { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-        .status-livre { background: #d4edda; color: #155724; }
-        .status-cours { background: #fff3cd; color: #856404; }
+        th { color: #86868b; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+        .status-select { padding: 6px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: none; cursor: pointer; outline: none; font-family: inherit; }
+        .empty-state { text-align: center; color: #888; padding: 40px; }
     </style>
 </head>
 <body>
@@ -32,33 +32,49 @@
 
 <div class="main">
 
-<h1 style="margin-top: 20px;">📦 Vue Globale des Commandes</h1>
+<div class="main-header" style="margin-bottom: 40px; margin-top: 10px;">
+    <h1 style="font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0;">Orders Management</h1>
+    <p style="color: var(--text-muted); font-size: 16px; margin: 0; max-width: 600px;">Review customer purchases, track shipping, and manage fulfillment statuses.</p>
+</div>
 
 <div class="container">
-    <table>
+    <div th:if="${#lists.isEmpty(commandes)}" class="empty-state">
+        <i class="fas fa-box-open" style="font-size: 2.5rem; color: #ccc; display: block; margin-bottom: 15px;"></i>
+        Aucune commande pour le moment.
+    </div>
+    <table th:if="${!#lists.isEmpty(commandes)}">
         <thead>
         <tr>
             <th>Réf. Commande</th>
             <th>Client</th>
             <th>Montant Total</th>
             <th>Date</th>
+            <th>Adresse</th>
+            <th>Paiement</th>
             <th>Statut</th>
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>#CMD-2026-001</td>
-            <td>Client Test 1</td>
-            <td>25000 MAD</td>
-            <td>18 Avr 2026</td>
-            <td><span class="status status-livre">LIVRÉE</span></td>
-        </tr>
-        <tr>
-            <td>#CMD-2026-002</td>
-            <td>Client Test 2</td>
-            <td>350 MAD</td>
-            <td>18 Avr 2026</td>
-            <td><span class="status status-cours">EN COURS</span></td>
+        <tr th:each="cmd : ${commandes}">
+            <td th:text="${cmd.numero}" style="font-weight: 600;"></td>
+            <td th:text="${cmd.clientNom}"></td>
+            <td th:text="${#numbers.formatDecimal(cmd.total, 1, 2)} + ' MAD'" style="font-weight: 600;"></td>
+            <td th:text="${cmd.dateCommande}"></td>
+            <td th:text="${cmd.adresseLivraison}" style="color: #5e5e63; font-size: 13px;"></td>
+            <td th:text="${cmd.methodePaiement}" style="color: #5e5e63; font-size: 13px;"></td>
+            <td>
+                <form th:action="@{'/admin/commandes/statut/' + ${cmd.id}}" method="post" style="margin:0;">
+                    <select name="statut" class="status-select" onchange="this.form.submit()"
+                            th:style="${cmd.statut == 'Livrée'} ? 'background:#d4edda;color:#155724;' :
+                                      (${cmd.statut == 'Annulée'} ? 'background:#f8d7da;color:#721c24;' :
+                                       'background:#fff3cd;color:#856404;')">
+                        <option value="En cours de préparation" th:selected="${cmd.statut == 'En cours de préparation'}">En cours</option>
+                        <option value="Expédiée" th:selected="${cmd.statut == 'Expédiée'}">Expédiée</option>
+                        <option value="Livrée" th:selected="${cmd.statut == 'Livrée'}">Livrée</option>
+                        <option value="Annulée" th:selected="${cmd.statut == 'Annulée'}">Annulée</option>
+                    </select>
+                </form>
+            </td>
         </tr>
         </tbody>
     </table>

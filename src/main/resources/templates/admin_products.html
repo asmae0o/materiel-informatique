@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
     <title>Products | Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,7 +28,7 @@
         .main-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0; }
         .main-header p { color: var(--text-muted); font-size: 16px; margin: 0; max-width: 600px; }
 
-        .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: 0.2s; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
         .btn-primary:hover { background: #005bb5; }
 
         table { width: 100%; border-collapse: collapse; }
@@ -37,8 +38,90 @@
         .prod-cat { font-size: 12px; color: var(--text-muted); }
         .stock-good { color: #137333; font-weight: 600; }
         .stock-bad { color: #d93025; font-weight: 600; }
-        .btn-delete { color: #c1c6d6; background: none; border: none; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .btn-delete:hover { color: #d93025; }
+        .actions-cell { display: flex; align-items: center; gap: 8px; }
+        .btn-action { color: #9ca3af; background: transparent; border: none; cursor: pointer; font-size: 15px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; text-decoration: none; padding: 0; outline: none; }
+        .btn-action:hover { background: #f3f4f6; color: #4b5563; }
+        .btn-delete-action { color: #9ca3af; background: transparent; border: none; cursor: pointer; font-size: 15px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; padding: 0; outline: none; }
+        .btn-delete-action:hover { background: #fee2e2; color: #ef4444; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: white; border-radius: 24px; padding: 40px; width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative; z-index: 10000; animation: slideUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
+        .modal-wide { width: min(900px, 95vw); padding: 36px 40px; overflow-y: visible; }
+        .modal-cols { display: flex; gap: 24px; align-items: stretch; }
+        .modal-col-left { flex: 1; min-width: 0; background: var(--bg); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .modal-col-right { flex: 1; min-width: 0; }
+        .col-section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+        .modal-divider { display: none; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal h2 { margin: 0 0 28px 0; font-size: 20px; font-weight: 700; }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: var(--bg); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: #e5e5ea; }
+        .modal-delete { width: 400px; padding: 40px 32px; text-align: center; }
+        .modal-delete .icon-warning { background: #fee2e2; color: #ef4444; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 20px auto; }
+        .modal-delete h2 { font-size: 18px; margin-bottom: 12px; }
+        .modal-delete p { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 28px; }
+        .btn-delete-confirm { flex: 1; background: #ef4444; color: white; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .btn-delete-confirm:hover { background: #dc2626; }
+        
+        /* Toast Notification */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; padding: 16px 20px; align-items: flex-start; gap: 12px; min-width: 300px; position: relative; overflow: hidden; pointer-events: auto; animation: toastSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; border: 1px solid rgba(0,0,0,0.05); }
+        .toast.closing { animation: toastSlideOut 0.3s ease forwards; }
+        .toast-icon { color: #10b981; font-size: 20px; margin-top: 2px; }
+        .toast-content { flex: 1; }
+        .toast-title { font-size: 15px; font-weight: 600; color: #111827; margin: 0 0 4px 0; display: block; }
+        .toast-msg { font-size: 13px; color: #6b7280; margin: 0; }
+        .toast-close { color: #d1d5db; cursor: pointer; font-size: 14px; background: none; border: none; padding: 4px; display: flex; transition: color 0.2s; margin-top: 2px; }
+        .toast-close:hover { color: #6b7280; }
+        .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #34d399; width: 100%; transform-origin: left; animation: toastProgress 3s linear forwards; }
+        @keyframes toastSlideIn { from { opacity: 0; transform: translateX(40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toastSlideOut { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(40px) scale(0.95); } }
+        @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .form-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e0e0e5; outline: none; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,113,227,0.1); }
+        .form-select { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e0e0e5; outline: none; font-family: inherit; font-size: 14px; background: white; box-sizing: border-box; }
+        .form-row { display: flex; gap: 14px; }
+        .form-row .form-group { flex: 1; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 28px; }
+        .btn-save { flex: 1; background: var(--primary); color: white; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .btn-save:hover { background: #005bb5; }
+        .btn-cancel { flex: 1; background: var(--bg); color: var(--text-muted); padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        .btn-cancel:hover { background: #e5e5ea; }
+
+        /* Image preview grid */
+        .img-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .img-thumb { position: relative; cursor: grab; border-radius: 12px; user-select: none; transition: transform 0.12s, opacity 0.12s; aspect-ratio: 1; }
+        .img-thumb:active { cursor: grabbing; }
+        .img-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid #e0e0e5; display: block; transition: border-color 0.15s, box-shadow 0.15s; pointer-events: none; }
+        .img-thumb:hover img { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,113,227,0.15); }
+        .img-thumb.primary-selected img { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.25); }
+        .img-thumb.dragging { opacity: 0.35; transform: scale(0.92); }
+        .img-thumb.drag-over img { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,113,227,0.35); transform: scale(1.06); }
+        .img-thumb .star-badge { display: none; position: absolute; top: -7px; right: -7px; background: #f59e0b; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.2); z-index: 2; pointer-events: none; }
+        .img-thumb.primary-selected .star-badge { display: flex; }
+        .img-thumb .pos-badge { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; border-radius: 999px; padding: 2px 7px; font-size: 9px; font-weight: 700; pointer-events: none; }
+        .img-thumb .hover-hint { display: none; position: absolute; inset: 0; border-radius: 12px; background: rgba(0,0,0,0.3); align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+        .img-thumb:hover .hover-hint { display: flex; }
+        .img-thumb.primary-selected:hover .hover-hint { display: none; }
+        .img-thumb .del-btn { position: absolute; top: -7px; left: -7px; background: #ef4444; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 15px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.25); z-index: 3; opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: all; }
+        .img-thumb:hover .del-btn { opacity: 1; }
+        .img-thumb .del-btn:hover { background: #dc2626; transform: scale(1.2); }
+        /* Upload zone */
+        .upload-zone { border: 2px dashed #d0d0d8; border-radius: 12px; padding: 18px 12px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; overflow: hidden; }
+        .upload-zone:hover { border-color: var(--primary); background: rgba(0,113,227,0.03); }
+        .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .upload-zone i { font-size: 20px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+        .upload-zone span { font-size: 12px; color: var(--text-muted); display: block; }
+        .upload-zone strong { font-size: 12px; color: var(--primary); }
+        .img-empty-state { text-align: center; padding: 20px 10px; color: var(--text-muted); }
+        .img-empty-state i { font-size: 28px; margin-bottom: 8px; display: block; opacity: 0.3; }
+        .img-empty-state p { font-size: 12px; margin: 0; }
+        .img-preview-empty { color: var(--text-muted); font-size: 12px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -46,10 +129,7 @@
 <div th:replace="~{fragments/admin_sidebar :: adminSidebar('products')}"></div>
 
 <div class="main">
-    <div class="topbar">
-        <div style="font-weight: 700; font-size: 18px;">The Gallery</div>
-        <div style="color: var(--text-muted); font-size: 14px;">Admin Product Mode</div>
-    </div>
+
 
     <div class="content-area">
         <div class="main-header">
@@ -57,7 +137,7 @@
                 <h1>Products Management</h1>
                 <p>Curate your product gallery. Manage stock levels, pricing, and visual representation of your premium hardware assets.</p>
             </div>
-            <a th:href="@{/gerant/nouveau}" class="btn-primary"><i class="fas fa-plus"></i> Create New Product</a>
+            <button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Create New Product</button>
         </div>
 
         <table>
@@ -67,7 +147,7 @@
                 <th>Product</th>
                 <th>Price</th>
                 <th>Stock</th>
-                <th>Action</th>
+                <th style="color: #8fa0b5; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">ACTIONS</th>
             </tr>
             </thead>
             <tbody>
@@ -75,7 +155,10 @@
                 <td th:text="'#GAL-' + ${p.id}" style="color: var(--text-muted);"></td>
                 <td>
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="width: 48px; height: 48px; background: var(--bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #c1c6d6;"><i class="fas fa-laptop"></i></div>
+                        <div style="width: 48px; height: 48px; background: var(--bg); border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; color: #c1c6d6;">
+                            <img th:if="${p.getPrimaryImage() != null}" th:src="@{${p.getPrimaryImage()}}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <i th:unless="${p.getPrimaryImage() != null}" class="fas fa-laptop"></i>
+                        </div>
                         <div>
                             <h4 class="prod-name" th:text="${p.nom}"></h4>
                             <span class="prod-cat" th:text="${p.marque != null ? p.marque.nom : 'Generic'}"></span>
@@ -85,7 +168,19 @@
                 <td th:text="${p.prix} + ' MAD'" style="font-weight: 500;"></td>
                 <td th:class="${p.quantiteStock > 10 ? 'stock-good' : 'stock-bad'}" th:text="${p.quantiteStock} + ' pcs'"></td>
                 <td>
-                    <a th:href="@{'/gerant/delete/' + ${p.id}}" class="btn-delete"><i class="fas fa-trash"></i></a>
+                    <div class="actions-cell">
+                        <button th:data-id="${p.id}"
+                                th:data-nom="${p.nom}"
+                                th:data-description="${p.description}"
+                                th:data-prix="${p.prix}"
+                                th:data-stock="${p.quantiteStock}"
+                                th:data-marque="${p.marque?.id}"
+                                th:data-categorie="${p.categorie?.id}"
+                                th:data-images="${p.imageUrlsJoined}"
+                                onclick="openEditModal(this)"
+                                class="btn-action" title="Edit Product"><i class="far fa-edit"></i></button>
+                        <button type="button" class="btn-delete-action" th:data-id="${p.id}" th:data-nom="${p.nom}" onclick="openDeleteModal(this)" title="Delete Product"><i class="far fa-trash-alt"></i></button>
+                    </div>
                 </td>
             </tr>
             </tbody>
@@ -93,5 +188,540 @@
     </div>
 </div>
 
+<!-- Add Product Modal -->
+<div class="modal-overlay" id="addModal" onclick="closeOnOverlay(event, 'addModal')">
+    <div class="modal modal-wide">
+        <button class="modal-close" onclick="closeModal('addModal')"><i class="fas fa-times"></i></button>
+        <h2 style="margin-bottom: 28px;">New Product</h2>
+        <form id="addProductForm" onsubmit="submitForm(event, 'addProductForm', 'addModal')" enctype="multipart/form-data">
+
+            <div class="modal-cols">
+                <!-- LEFT: Image upload zone -->
+                <div class="modal-col-left">
+                    <div class="col-section-title">&#128247; Product Images</div>
+
+                    <div>
+                        <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">
+                            Preview
+                        </label>
+                        <div class="img-preview-grid" id="addImagesPreview"></div>
+                    </div>
+
+                    <div class="upload-zone" id="addUploadZone">
+                        <input type="file" name="images" accept="image/*" multiple id="addImagesInput">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <strong>Click or drag to upload</strong>
+                        <span>PNG, JPG, WEBP &middot; multiple OK</span>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Product fields -->
+                <div class="modal-col-right">
+                    <div class="col-section-title">&#128230; Product Details</div>
+
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" name="nom" class="form-input" placeholder="ex: MacBook Pro 16" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" class="form-input" placeholder="Short description...">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Price (MAD)</label>
+                            <input type="number" step="0.01" name="prix" class="form-input" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock</label>
+                            <input type="number" name="quantiteStock" class="form-input" placeholder="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Marque</label>
+                        <select name="marque" class="form-select" required>
+                            <option value="">-- Choisir Marque --</option>
+                            <option th:each="m : ${marques}" th:value="${m.id}" th:text="${m.nom}"></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select name="categorie" class="form-select" required>
+                            <option value="">-- Choisir Catégorie --</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.nom}"></option>
+                        </select>
+                    </div>
+
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn-cancel" onclick="closeModal('addModal')">Cancel</button>
+                        <button type="submit" class="btn-save" id="addSubmitBtn">Create Product</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal" onclick="closeOnOverlay(event, 'deleteModal')">
+    <div class="modal modal-delete">
+        <div class="icon-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 style="margin-bottom: 12px;">Supprimer le produit</h2>
+        <p id="deleteModalText">Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible.</p>
+        <form id="deleteProductForm" onsubmit="confirmDelete(event)">
+            <input type="hidden" id="deleteProductId" name="id">
+            <div class="modal-actions" style="margin-top: 0;">
+                <button type="button" class="btn-cancel" onclick="closeModal('deleteModal')">Annuler</button>
+                <button type="submit" class="btn-delete-confirm" id="deleteSubmitBtn">Supprimer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal-overlay" id="editModal" onclick="closeOnOverlay(event, 'editModal')">
+    <div class="modal modal-wide">
+        <button class="modal-close" onclick="closeModal('editModal')"><i class="fas fa-times"></i></button>
+        <h2 style="margin-bottom: 28px;">Edit Product</h2>
+        <form id="editProductForm" onsubmit="submitForm(event, 'editProductForm', 'editModal')" enctype="multipart/form-data">
+            <input type="hidden" name="id" id="editProductId">
+            <input type="hidden" name="primaryImageUrl" id="editPrimaryImageUrl">
+            <input type="hidden" name="imageOrder" id="editImageOrder">
+
+            <div class="modal-cols">
+                <!-- LEFT: Images -->
+                <div class="modal-col-left">
+                    <div class="col-section-title">&#128247; Product Images</div>
+
+                    <div>
+                        <label style="display:block;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;">
+                            Gallery <span style="font-weight:400;font-size:10px;">(drag · &#9733; = main · &times; = delete)</span>
+                        </label>
+                        <div class="img-preview-grid" id="editImagesPreview"></div>
+                    </div>
+
+                    <div class="upload-zone" id="editUploadZone">
+                        <input type="file" name="images" accept="image/*" multiple id="editImagesInput">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <strong>Click or drag to upload</strong>
+                        <span>PNG, JPG, WEBP &middot; multiple OK</span>
+                    </div>
+                </div>
+
+                <div class="modal-divider"></div>
+
+                <!-- RIGHT: Product fields -->
+                <div class="modal-col-right">
+                    <div class="col-section-title">&#128230; Product Details</div>
+
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" name="nom" id="editNom" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" id="editDescription" class="form-input">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Price (MAD)</label>
+                            <input type="number" step="0.01" name="prix" id="editPrix" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock</label>
+                            <input type="number" name="quantiteStock" id="editStock" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Marque</label>
+                        <select name="marque" id="editMarque" class="form-select" required>
+                            <option value="">-- Choisir Marque --</option>
+                            <option th:each="m : ${marques}" th:value="${m.id}" th:text="${m.nom}"></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select name="categorie" id="editCategorie" class="form-select" required>
+                            <option value="">-- Choisir Catégorie --</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.nom}"></option>
+                        </select>
+                    </div>
+
+                    <div class="modal-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+                        <button type="submit" class="btn-save" id="editSubmitBtn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Global state for newly added files in the "Add Product" flow
+    let addModalFiles = [];
+
+    function openAddModal() {
+        document.getElementById('addProductForm').reset();
+        addModalFiles = [];
+        renderAddPreview();
+        document.getElementById('addModal').classList.add('open');
+    }
+
+    // Capture files selected in Add Modal
+    document.addEventListener('DOMContentLoaded', () => {
+        const addInput = document.getElementById('addImagesInput');
+        if (addInput) {
+            addInput.addEventListener('change', e => {
+                if (e.target.files.length > 0) {
+                    addModalFiles = [...addModalFiles, ...e.target.files];
+                    renderAddPreview();
+                }
+                addInput.value = ''; // Reset input so we can pick again
+            });
+        }
+    });
+
+    // Renders the live Add Modal preview grid from local files array
+    function renderAddPreview() {
+        const preview = document.getElementById('addImagesPreview');
+        preview.innerHTML = '';
+        if (addModalFiles.length === 0) {
+            preview.innerHTML = '<span class="img-preview-empty">No images yet</span>';
+            return;
+        }
+
+        addModalFiles.forEach((file, index) => {
+            const url = URL.createObjectURL(file);
+            const thumb = createDraggableThumbUI(url, index);
+            
+            thumb.querySelector('.del-btn').addEventListener('click', e => {
+                e.stopPropagation();
+                thumb.style.opacity = '0';
+                thumb.style.transform = 'scale(0.7)';
+                setTimeout(() => {
+                    addModalFiles.splice(index, 1);
+                    renderAddPreview();
+                }, 180);
+            });
+
+            thumb.addEventListener('click', () => {
+                if (index > 0) {
+                    const f = addModalFiles.splice(index, 1)[0];
+                    addModalFiles.unshift(f);
+                    renderAddPreview();
+                }
+            });
+
+            preview.appendChild(thumb);
+        });
+    }
+
+    function openEditModal(btn) {
+        document.getElementById('editProductId').value = btn.dataset.id;
+        document.getElementById('editNom').value = btn.dataset.nom;
+        document.getElementById('editDescription').value = btn.dataset.description;
+        document.getElementById('editPrix').value = btn.dataset.prix;
+        document.getElementById('editStock').value = btn.dataset.stock;
+        document.getElementById('editMarque').value = btn.dataset.marque || '';
+        document.getElementById('editCategorie').value = btn.dataset.categorie || '';
+        document.getElementById('editImageOrder').value = '';
+
+        const preview = document.getElementById('editImagesPreview');
+        preview.innerHTML = '';
+        const urls = (btn.dataset.images || '').split('||').filter(u => u.trim());
+
+        if (urls.length > 0) {
+            urls.forEach((url, index) => {
+                const thumb = createDraggableThumbUI(url, index);
+                thumb.dataset.url = url;
+
+                thumb.querySelector('.del-btn').addEventListener('click', e => {
+                    e.stopPropagation();
+                    thumb.style.opacity = '0';
+                    thumb.style.transform = 'scale(0.7)';
+                    setTimeout(() => {
+                        thumb.remove();
+                        updateEditImageOrder(preview);
+                    }, 180);
+                });
+
+                thumb.addEventListener('click', () => {
+                    const container = thumb.parentElement;
+                    container.insertBefore(thumb, container.firstChild);
+                    updateEditImageOrder(container);
+                });
+
+                preview.appendChild(thumb);
+            });
+            updateEditImageOrder(preview);
+        } else {
+            document.getElementById('editPrimaryImageUrl').value = '';
+            document.getElementById('editImageOrder').value = '';
+            preview.innerHTML = '<span class="img-preview-empty">No images yet</span>';
+        }
+
+        document.getElementById('editModal').classList.add('open');
+    }
+
+    function createDraggableThumbUI(url, index) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'img-thumb' + (index === 0 ? ' primary-selected' : '');
+        wrapper.draggable = true;
+        wrapper.title = index === 0 ? 'Main image' : 'Click or drag to set as main';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+
+        const star = document.createElement('span');
+        star.className = 'star-badge';
+        star.innerHTML = '&#9733;';
+
+        const pos = document.createElement('span');
+        pos.className = 'pos-badge';
+        pos.textContent = index + 1;
+
+        const hint = document.createElement('span');
+        hint.className = 'hover-hint';
+        hint.textContent = 'Drag or click';
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'del-btn';
+        delBtn.innerHTML = '&times;';
+        delBtn.title = 'Remove image';
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(star);
+        wrapper.appendChild(pos);
+        wrapper.appendChild(hint);
+        wrapper.appendChild(delBtn);
+
+        return wrapper;
+    }
+
+    function updateEditImageOrder(container) {
+        const thumbs = [...container.querySelectorAll('.img-thumb')];
+        thumbs.forEach((thumb, i) => {
+            const isFirst = i === 0;
+            thumb.classList.toggle('primary-selected', isFirst);
+            thumb.title = isFirst ? 'Main image' : 'Click or drag to set as main';
+            const pos = thumb.querySelector('.pos-badge');
+            if (pos) pos.textContent = i + 1;
+        });
+        const urls = thumbs.map(t => t.dataset.url);
+        document.getElementById('editPrimaryImageUrl').value = urls[0] || '';
+        document.getElementById('editImageOrder').value = urls.join('||');
+    }
+
+    // --- Global Drag & Drop Reordering via Event Delegation ---
+    document.addEventListener('dragstart', e => {
+        const thumb = e.target.closest('.img-thumb');
+        if (!thumb) return;
+        thumb.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', ''); // Required for Firefox
+    });
+
+    document.addEventListener('dragend', e => {
+        document.querySelectorAll('.img-thumb').forEach(t => t.classList.remove('dragging', 'drag-over'));
+    });
+
+    document.addEventListener('dragover', e => {
+        const thumb = e.target.closest('.img-thumb');
+        if (!thumb || thumb.classList.contains('dragging')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('.img-thumb').forEach(t => t.classList.remove('drag-over'));
+        thumb.classList.add('drag-over');
+    });
+
+    document.addEventListener('dragleave', e => {
+        const thumb = e.target.closest('.img-thumb');
+        if (thumb) thumb.classList.remove('drag-over');
+    });
+
+    document.addEventListener('drop', e => {
+        const targetThumb = e.target.closest('.img-thumb');
+        if (!targetThumb) return;
+        e.preventDefault();
+        targetThumb.classList.remove('drag-over');
+
+        const container = targetThumb.parentElement;
+        const dragThumb = container.querySelector('.dragging');
+        if (!dragThumb || dragThumb === targetThumb) return;
+
+        const allThumbs = [...container.children];
+        const srcIdx = allThumbs.indexOf(dragThumb);
+        const tgtIdx = allThumbs.indexOf(targetThumb);
+
+        // Edit Modal handles DOM reposition automatically, then updates
+        if (container.id === 'editImagesPreview') {
+            if (srcIdx < tgtIdx) container.insertBefore(dragThumb, targetThumb.nextSibling);
+            else container.insertBefore(dragThumb, targetThumb);
+            updateEditImageOrder(container);
+        } 
+        // Add Modal manipulates the Source Array, then re-renders to stay in sync safely
+        else if (container.id === 'addImagesPreview') {
+            const item = addModalFiles.splice(srcIdx, 1)[0];
+            addModalFiles.splice(tgtIdx, 0, item);
+            renderAddPreview();
+        }
+    });
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+    }
+
+    function closeOnOverlay(event, id) {
+        if (event.target === document.getElementById(id)) closeModal(id);
+    }
+
+    async function submitForm(event, formId, modalId) {
+        event.preventDefault();
+        const form = document.getElementById(formId);
+        const submitBtn = form.querySelector('[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+
+        try {
+            const formData = new FormData(form);
+
+            // Important: For the ADD form, intercept images and supply them strictly in the visual order decided by drag-and-drop
+            if (formId === 'addProductForm') {
+                formData.delete('images');
+                addModalFiles.forEach(file => {
+                    formData.append('images', file);
+                });
+            }
+
+            const response = await fetch('/admin/products/save', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            if (response.ok || response.redirected) {
+                closeModal(modalId);
+                window.location.reload();
+            } else if (response.status === 302 || response.url.includes('/login')) {
+                alert('Session expired. Please log in again.');
+                window.location.href = '/login';
+            } else {
+                alert('An error occurred. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        } catch (err) {
+            console.error('Submit error:', err);
+            alert('Network error. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
+
+    let trToDelete = null;
+
+    function openDeleteModal(btn) {
+        const id = btn.dataset.id;
+        const nom = btn.dataset.nom;
+        trToDelete = btn.closest('tr');
+        document.getElementById('deleteProductId').value = id;
+        document.getElementById('deleteModalText').innerHTML = `Êtes-vous sûr de vouloir supprimer "<strong>${nom}</strong>" ? Cette action est irréversible.`;
+        document.getElementById('deleteModal').classList.add('open');
+    }
+
+    async function confirmDelete(event) {
+        event.preventDefault();
+        const id = document.getElementById('deleteProductId').value;
+        const btn = document.getElementById('deleteSubmitBtn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Suppression...';
+
+        try {
+            const response = await fetch('/admin/products/delete/' + id, {
+                method: 'GET', // The existing controller endpoint uses GET
+                credentials: 'same-origin'
+            });
+
+            if (response.ok || response.redirected) {
+                closeModal('deleteModal');
+                
+                // Show toast & seamless DOM removal
+                const nom = document.getElementById('deleteModalText').querySelector('strong').textContent;
+                showToast('Produit supprimé', `"${nom}" a été supprimé.`);
+                if (trToDelete) trToDelete.remove();
+                
+                // Reset button state just in case
+                btn.disabled = false;
+                btn.textContent = originalText;
+            } else if (response.status === 302 || response.url.includes('/login')) {
+                window.location.href = '/login';
+            } else {
+                alert('Erreur lors de la suppression.');
+                btn.disabled = false;
+                btn.textContent = originalText;
+                closeModal('deleteModal');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Erreur réseau.');
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            closeModal('addModal');
+            closeModal('editModal');
+            closeModal('deleteModal');
+        }
+    });
+
+    function showToast(title, message) {
+        let container = document.getElementById('toastWrapper');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastWrapper';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <div class="toast-icon"><i class="far fa-check-circle"></i></div>
+            <div class="toast-content">
+                <strong class="toast-title">${title}</strong>
+                <p class="toast-msg">${message}</p>
+            </div>
+            <button class="toast-close" onclick="this.closest('.toast').classList.add('closing'); setTimeout(() => this.closest('.toast').remove(), 300);"><i class="fas fa-times"></i></button>
+            <div class="toast-progress"></div>
+        `;
+
+        container.appendChild(toast);
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('closing');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 3000);
+    }
+</script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
     <title>Inscription | MyHardware</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,8 +39,23 @@
 
     <form th:action="@{/signup}" method="post">
         <div class="form-group">
+            <label>Nom complet</label>
+            <input type="text" name="nom" placeholder="Votre nom et prénom" required autofocus>
+        </div>
+
+        <div class="form-group">
             <label>Nom d'utilisateur</label>
-            <input type="text" name="username" placeholder="Choisissez un identifiant" required autofocus>
+            <input type="text" name="username" placeholder="Choisissez un identifiant" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="votre@email.com">
+        </div>
+
+        <div class="form-group">
+            <label>Téléphone</label>
+            <input type="tel" name="telephone" placeholder="Ex: 06 12 34 56 78">
         </div>
 
         <div class="form-group">
