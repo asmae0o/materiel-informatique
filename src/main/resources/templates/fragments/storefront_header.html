@@ -15,10 +15,16 @@
         <div class="nav-icons">
             <button type="button" sec:authorize="!hasAnyAuthority('GERANT', 'ADMIN')" onclick="window.CartPanel.open()" style="position: relative;">
                 <i class="fas fa-shopping-bag"></i>
-                <span class="cart-badge" th:if="${session.cart != null and !session.cart.isEmpty()}" th:text="${#aggregates.sum(session.cart.values().![quantite])}"></span>
+                <span id="cart-badge" class="cart-badge"
+                      th:text="${session.cart != null and !session.cart.isEmpty()} ? ${#aggregates.sum(session.cart.values().![quantite])} : ''"
+                      th:style="${session.cart == null or session.cart.isEmpty()} ? 'display:none' : ''"></span>
             </button>
 
-            <div sec:authorize="!isAuthenticated()"><a th:href="@{/login}"><i class="far fa-user-circle"></i></a></div>
+            <div sec:authorize="!isAuthenticated()">
+                <button type="button" onclick="openModal('loginModal')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#1a1c1d;padding:0;display:flex;align-items:center;">
+                    <i class="far fa-user-circle"></i>
+                </button>
+            </div>
 
             <div sec:authorize="isAuthenticated() and !hasAnyAuthority('GERANT', 'ADMIN')">
                 <a th:href="@{/compte}"><i class="fas fa-user-circle"></i></a>
@@ -280,17 +286,103 @@
             text-align: center;
             padding: 12px 16px;
             border-radius: 999px;
-            background: #0071e3;
+            background: #1a1c1d;
             color: #fff;
             text-decoration: none;
             font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .checkout-btn.disabled {
             pointer-events: none;
             opacity: 0.45;
         }
+
+        /* Auth Modals */
+        .auth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 9999; justify-content: center; align-items: center; }
+        .auth-overlay.open { display: flex; }
+        .auth-modal { background: #fff; border-radius: 24px; padding: 40px; width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative; animation: authSlideUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
+        @keyframes authSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .auth-modal h2 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+        .auth-modal .subtitle { color: #5e5e63; font-size: 14px; margin: 0 0 28px 0; }
+        .auth-close { position: absolute; top: 18px; right: 18px; background: #f5f5f7; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 15px; color: #5e5e63; display: flex; align-items: center; justify-content: center; }
+        .auth-close:hover { background: #e5e5ea; }
+        .auth-group { margin-bottom: 14px; }
+        .auth-group label { display: block; font-size: 11px; font-weight: 600; color: #5e5e63; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .auth-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e0e0e5; outline: none; font-family: inherit; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s; background: #f9f9fb; }
+        .auth-input:focus { border-color: #0071e3; box-shadow: 0 0 0 3px rgba(0,113,227,0.1); background: #fff; }
+        .auth-btn { width: 100%; padding: 14px; background: #1a1c1d; color: white; border: none; border-radius: 999px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 8px; transition: 0.2s; }
+        .auth-btn:hover { background: #000; }
+        .auth-switch { text-align: center; margin-top: 20px; font-size: 14px; color: #5e5e63; }
+        .auth-switch a { color: #0071e3; text-decoration: none; font-weight: 600; cursor: pointer; }
+        .auth-switch a:hover { text-decoration: underline; }
+        .auth-error { background: #fff0f0; color: #d93025; font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; }
     </style>
+
+    <!-- Login Modal -->
+    <div class="auth-overlay" id="loginModal" onclick="closeOnAuthOverlay(event,'loginModal')">
+        <div class="auth-modal">
+            <button class="auth-close" onclick="closeModal('loginModal')"><i class="fas fa-times"></i></button>
+            <h2>Welcome back</h2>
+            <p class="subtitle">Sign in to your Quantum account</p>
+            <div class="auth-error" th:if="${param.loginError != null}">Identifiants incorrects. Réessayez.</div>
+            <form th:action="@{/login}" method="post">
+                <div class="auth-group">
+                    <label>Username or Email</label>
+                    <input type="text" name="username" class="auth-input" placeholder="your username or email" required autofocus>
+                </div>
+                <div class="auth-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="auth-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-btn">Sign In</button>
+            </form>
+            <p class="auth-switch">No account? <a onclick="switchModal('loginModal','signupModal')">Create one</a></p>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div class="auth-overlay" id="signupModal" onclick="closeOnAuthOverlay(event,'signupModal')">
+        <div class="auth-modal">
+            <button class="auth-close" onclick="closeModal('signupModal')"><i class="fas fa-times"></i></button>
+            <h2>Create account</h2>
+            <p class="subtitle">Join Quantum today</p>
+            <div class="auth-error" th:if="${signupError}" th:text="${signupError}"></div>
+            <form th:action="@{/signup}" method="post">
+                <div class="auth-group">
+                    <label>Full Name</label>
+                    <input type="text" name="nom" class="auth-input" placeholder="Your name" required>
+                </div>
+                <div class="auth-group">
+                    <label>Username</label>
+                    <input type="text" name="username" class="auth-input" placeholder="Choose a username" required>
+                </div>
+                <div class="auth-group">
+                    <label>Email</label>
+                    <input type="email" name="email" class="auth-input" placeholder="your@email.com">
+                </div>
+                <div class="auth-group">
+                    <label>Phone</label>
+                    <input type="tel" name="telephone" class="auth-input" placeholder="06 12 34 56 78">
+                </div>
+                <div class="auth-group">
+                    <label>Password</label>
+                    <input type="password" name="password" class="auth-input" placeholder="••••••••" required>
+                </div>
+                <div class="auth-group">
+                    <label>Confirm Password</label>
+                    <input type="password" name="confirmPassword" class="auth-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-btn">Create Account</button>
+            </form>
+            <p class="auth-switch">Already have an account? <a onclick="switchModal('signupModal','loginModal')">Sign in</a></p>
+        </div>
+    </div>
 
     <script>
         window.CartPanel = window.CartPanel || {
@@ -318,6 +410,22 @@
                 document.getElementById('cart-panel-content').innerHTML = html;
             }
         };
+
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function switchModal(from, to) { closeModal(from); openModal(to); }
+        function closeOnAuthOverlay(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal('loginModal'); closeModal('signupModal'); } });
+
+        // Auto-open based on URL params or server-side errors
+        (function() {
+            const p = new URLSearchParams(window.location.search);
+            if (p.has('loginError')) openModal('loginModal');
+            if (p.has('signupError')) openModal('signupModal');
+        })();
+        // Auto-open signup modal if server-side signupError flash present
+        const hasSignupError = /*[[${signupError != null}]]*/ false;
+        if (hasSignupError) openModal('signupModal');
     </script>
 </div>
 </body>

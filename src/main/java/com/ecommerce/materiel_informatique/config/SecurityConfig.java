@@ -37,7 +37,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
+                        .loginPage("/")
+                        .loginProcessingUrl("/login")
                         .successHandler((request, response, authentication) -> {
                             var roles = authentication.getAuthorities().toString();
                             if (roles.contains("ADMIN")) {
@@ -48,7 +49,7 @@ public class SecurityConfig {
                                 response.sendRedirect("/");
                             }
                         })
-                        .failureUrl("/login?error")
+                        .failureUrl("/?loginError")
                         .permitAll()
                 )
                 .logout(logout -> logout
