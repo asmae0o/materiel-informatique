@@ -28,6 +28,9 @@ public class AppUser {
     @Column
     private String telephone;
 
+    @Column
+    private String adresse;
+
     public AppUser() {}
 
     public AppUser(String username, String password, String role) {
@@ -49,4 +52,6 @@ public class AppUser {
     public void setEmail(String email) { this.email = email; }
     public String getTelephone() { return telephone; }
     public void setTelephone(String telephone) { this.telephone = telephone; }
+    public String getAdresse() { return adresse; }
+    public void setAdresse(String adresse) { this.adresse = adresse; }
 }

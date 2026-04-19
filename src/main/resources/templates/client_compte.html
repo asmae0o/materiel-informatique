@@ -3,184 +3,336 @@
 <head>
     <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
-    <title>Mon Compte | Quantum</title>
+    <title>My Account | Quantum</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        :root { --bg: #f3f4f6; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #1a1c1d; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 0; }
 
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 0 5%; height: 60px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.04); }
-        .logo { font-size: 18px; font-weight: 700; color: var(--text-main); text-decoration: none; letter-spacing: -0.02em; }
-        .nav-links { display: flex; align-items: center; gap: 30px; }
-        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: 0.2s; }
-        .nav-links a:hover, .nav-links a.active { color: var(--text-main); }
-        .nav-icons { display: flex; gap: 20px; align-items: center; }
-        .nav-icons a, .nav-icons button { color: var(--text-main); background: none; border: none; font-size: 18px; cursor: pointer; text-decoration: none; }
+        .page-header { background: #1a1c1d; padding: 48px 5%; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.04) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.03) 0%, transparent 50%); pointer-events: none; }
+        .user-info { display: flex; align-items: center; gap: 20px; position: relative; }
+        .avatar { width: 68px; height: 68px; background: rgba(255,255,255,0.12); color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 700; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); }
+        .user-greeting { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-bottom: 4px; }
+        .user-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: #fff; margin: 0 0 4px; }
+        .user-meta { font-size: 13px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 6px; }
+        .user-meta i { font-size: 11px; }
+        .btn-logout { border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; position: relative; backdrop-filter: blur(4px); }
+        .btn-logout:hover { background: rgba(255,59,48,0.2); border-color: rgba(255,59,48,0.5); color: #ff6b6b; }
 
-        .header { background: var(--surface); padding: 50px 5%; border-bottom: 1px solid rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center;}
-        .user-info { display: flex; align-items: center; gap: 25px; }
-        .avatar { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 32px; font-weight: 600;}
-        .header h1 { margin: 0 0 5px 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em;}
-        .pills { display: flex; gap: 10px; margin-top: 10px;}
-        .pill { background: #f5f5f7; padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);}
+        .layout { display: flex; gap: 40px; padding: 40px 5% 80px; max-width: 1400px; margin: 0 auto; align-items: flex-start; }
 
-        .btn-outline { border: 1px solid #d2d2d7; background: transparent; padding: 10px 20px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;}
-        .btn-logout { border: 1px solid #ff3b30; color: #ff3b30; background: transparent; padding: 10px 20px; border-radius: 999px; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s;}
-        .btn-logout:hover { background: #fff0f0; }
+        /* Sidebar */
+        .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 100px; }
+        .nav-card { background: var(--surface); border-radius: 20px; padding: 8px; box-shadow: 0 4px 14px rgba(26,28,29,0.03); }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--text-muted); text-decoration: none; cursor: pointer; transition: 0.2s; border: none; background: none; width: 100%; font-family: inherit; }
+        .nav-item:hover { background: var(--bg); color: var(--text-main); }
+        .nav-item.active { background: var(--bg); color: var(--text-main); }
+        .nav-item i { width: 18px; text-align: center; font-size: 15px; }
 
-        .layout { display: flex; gap: 40px; padding: 40px 5%; max-width: 1400px; margin: 0 auto; align-items: flex-start;}
+        /* Content */
+        .content { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+        .section-card { background: var(--surface); border-radius: 24px; padding: 32px; box-shadow: 0 4px 14px rgba(26,28,29,0.03); }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 
-        .left-col { width: 300px; flex-shrink: 0;}
-        .side-card { background: var(--surface); border-radius: 24px; padding: 20px; box-shadow: 0 4px 14px rgba(26,28,29,0.02); margin-bottom: 20px;}
-        .side-card h3 { font-size: 15px; margin: 0 0 20px 0;}
-        .menu-item { display: flex; justify-content: space-between; padding: 15px 10px; border-bottom: 1px solid rgba(0,0,0,0.04); text-decoration: none; color: var(--text-main); font-size: 14px; font-weight: 500;}
-        .menu-item:last-child { border-bottom: none;}
-        .menu-item i { color: var(--primary); width: 20px;}
+        /* Info display rows */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .info-field { display: flex; flex-direction: column; gap: 4px; }
+        .info-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+        .info-value { font-size: 14px; font-weight: 500; color: var(--text-main); }
+        .info-value.empty { color: #c1c6d6; font-style: italic; }
 
-        .blue-card { background: var(--primary); color: white; border-radius: 24px; padding: 30px;}
-        .blue-card h3 { margin: 0 0 10px 0; font-size: 16px;}
-        .blue-card p { font-size: 13px; line-height: 1.5; opacity: 0.9; margin: 0 0 20px 0;}
+        /* Inputs */
+        .form-input { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid transparent; border-radius: 12px; font-size: 14px; color: var(--text-main); outline: none; transition: 0.2s; box-sizing: border-box; font-family: inherit; }
+        .form-input:focus { border-color: #1a1c1d; background: #fff; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-row.single { grid-template-columns: 1fr; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+        .form-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-save { background: #1a1c1d; color: #fff; border: none; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-save:hover { background: #000; }
+        .btn-edit { background: none; border: 1px solid rgba(0,0,0,0.12); padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text-main); transition: 0.2s; }
+        .btn-edit:hover { border-color: #1a1c1d; }
 
-        .right-col { flex: 1; }
-        .card-main { background: var(--surface); border-radius: 24px; padding: 40px; box-shadow: 0 4px 14px rgba(26,28,29,0.02); margin-bottom: 30px; }
+        /* Password eye */
+        .pwd-wrap { position: relative; }
+        .pwd-wrap .form-input { padding-right: 44px; }
+        .pwd-eye { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 15px; padding: 0; }
 
-        .right-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 30px;}
-        .right-header h2 { font-size: 24px; font-weight: 600; margin: 0; letter-spacing: -0.02em;}
+        /* Alert */
+        .alert { padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #e8f5e9; color: #137333; }
+        .alert-error { background: #fff0f0; color: #d93025; }
 
+        /* Orders table */
         table { width: 100%; border-collapse: collapse; }
-        th { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 15px 0; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08);}
-        td { padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; font-weight: 500;}
-
-        .status-pill { padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 600;}
+        th { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 0 14px 0; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+        td { padding: 18px 0; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; font-weight: 500; }
+        .status-pill { padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600; }
         .status-delivered { background: #e8f5e9; color: #137333; }
         .status-processing { background: #fef7e0; color: #b06000; }
+        .link-view { color: var(--text-main); text-decoration: none; font-size: 13px; font-weight: 600; }
+        .link-view:hover { text-decoration: underline; }
 
-        .link-blue { color: var(--primary); text-decoration: none; font-weight: 500; font-size: 13px;}
-        .link-blue:hover { text-decoration: underline;}
-
-        /* Formulaire Edition */
-        .form-input { width: 100%; padding: 14px 16px; background: var(--bg); border: 1px solid transparent; border-radius: 12px; font-size: 14px; color: var(--text-main); outline: none; transition: 0.2s; box-sizing: border-box; margin-top: 8px;}
-        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1); }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 999px; font-weight: 500; cursor: pointer;}
-        .btn-cancel { background: transparent; border: 1px solid #d2d2d7; padding: 12px 24px; border-radius: 999px; font-weight: 500; cursor: pointer;}
+        /* Toast */
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #1a1c1d; color: #fff; padding: 16px 22px; border-radius: 16px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { font-size: 18px; }
+        .toast.success i { color: #34c759; }
+        .toast.error i { color: #ff3b30; }
     </style>
 </head>
 <body>
 
 <div th:replace="~{fragments/storefront_header :: storefrontHeader}"></div>
 
-<div class="header">
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
+
+<div class="page-header">
     <div class="user-info">
-        <div class="avatar" th:text="${#authentication.name != 'anonymousUser' ? #strings.substring(#authentication.name,0,1).toUpperCase() : 'U'}">A</div>
+        <div class="avatar" th:text="${currentUser?.nom != null ? #strings.substring(currentUser.nom,0,1).toUpperCase() : #strings.substring(#authentication.name,0,1).toUpperCase()}">U</div>
         <div>
-            <h1 th:text="${currentUser?.nom != null ? currentUser.nom : #authentication.name}">User Name</h1>
-            <div style="color: var(--text-muted); font-size: 14px;" th:text="${currentUser?.email != null ? currentUser.email : 'Member'}">Member</div>
-            <div class="pills">
-                <span class="pill">Pro Member</span>
-                <span class="pill">Since 2026</span>
+            <div class="user-greeting">My Account</div>
+            <div class="user-name" th:text="${currentUser?.nom != null ? currentUser.nom : #authentication.name}">User Name</div>
+            <div class="user-meta">
+                <i class="fas fa-envelope"></i>
+                <span th:text="${currentUser?.email != null ? currentUser.email : 'No email set'}"></span>
+                <span th:if="${currentUser?.telephone != null}" style="margin-left:8px; padding-left:8px; border-left:1px solid rgba(255,255,255,0.15);">
+                    <i class="fas fa-phone" style="margin-right:4px;"></i>
+                    <span th:text="${currentUser.telephone}"></span>
+                </span>
             </div>
         </div>
     </div>
-    <div style="display: flex; gap: 15px; align-items: center;">
-        <button class="btn-outline" onclick="toggleEdit()"><i class="fas fa-pen"></i> Edit Profile</button>
-        <form th:action="@{/logout}" method="post" style="margin: 0;">
-            <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
-        </form>
-    </div>
+    <form th:action="@{/logout}" method="post" style="margin:0;">
+        <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+    </form>
 </div>
 
 <div class="layout">
-    <div class="left-col">
-        <div class="side-card">
-            <h3>Security & Settings</h3>
-            <a href="#" class="menu-item"><span style="display: flex; gap:10px;"><i class="fas fa-user-shield"></i> Passkeys</span> <i class="fas fa-chevron-right" style="color: #c1c6d6; font-size: 12px;"></i></a>
-            <a href="#" class="menu-item"><span style="display: flex; gap:10px;"><i class="fas fa-wallet"></i> Apple Pay</span> <i class="fas fa-chevron-right" style="color: #c1c6d6; font-size: 12px;"></i></a>
-            <a href="#" class="menu-item"><span style="display: flex; gap:10px;"><i class="fas fa-map-marker-alt"></i> Addresses</span> <i class="fas fa-chevron-right" style="color: #c1c6d6; font-size: 12px;"></i></a>
-        </div>
 
-        <div class="blue-card">
-            <h3>Trade-in program</h3>
-            <p>Turn the device you have into the one you want. Get credit toward your next purchase.</p>
-            <a href="#" style="color: white; text-decoration: none; font-size: 13px; font-weight: 600;">Learn more &rarr;</a>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="nav-card">
+            <button class="nav-item active" onclick="showSection('info')"><i class="fas fa-user"></i> Personal Info</button>
+            <button class="nav-item" onclick="showSection('address')"><i class="fas fa-map-marker-alt"></i> Addresses</button>
+            <button class="nav-item" onclick="showSection('password')"><i class="fas fa-lock"></i> Password</button>
+            <button class="nav-item" onclick="showSection('orders')"><i class="fas fa-box"></i> Orders</button>
         </div>
     </div>
 
-    <div class="right-col">
+    <!-- Content -->
+    <div class="content">
 
-        <div id="edit-section" class="card-main" style="display: none;">
-            <h2 style="margin: 0 0 20px 0; font-size: 20px;">Edit Profile Information</h2>
-            <form th:action="@{/compte/update}" method="post">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
-                    <div>
-                        <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Full Name</label>
-                        <input type="text" name="nom" th:value="${currentUser?.nom}" placeholder="Votre nom complet" class="form-input">
+        <!-- Personal Info -->
+        <div id="section-info" class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">Personal Information</h2>
+                <button class="btn-edit" onclick="toggleForm('info-form','info-display')"><i class="fas fa-pen" style="font-size:11px;margin-right:6px;"></i>Edit</button>
+            </div>
+
+            <!-- Display mode -->
+            <div id="info-display">
+                <div class="info-grid">
+                    <div class="info-field">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value" th:classappend="${currentUser?.nom == null ? ' empty' : ''}" th:text="${currentUser?.nom != null ? currentUser.nom : 'Not set'}"></span>
                     </div>
-                    <div>
-                        <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Email</label>
-                        <input type="email" name="email" th:value="${currentUser?.email}" placeholder="votre@email.com" class="form-input">
+                    <div class="info-field">
+                        <span class="info-label">Username</span>
+                        <span class="info-value" th:text="${#authentication.name}"></span>
                     </div>
-                    <div>
-                        <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Téléphone</label>
-                        <input type="tel" name="telephone" th:value="${currentUser?.telephone}" placeholder="Ex: 06 12 34 56 78" class="form-input">
+                    <div class="info-field">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" th:classappend="${currentUser?.email == null ? ' empty' : ''}" th:text="${currentUser?.email != null ? currentUser.email : 'Not set'}"></span>
+                    </div>
+                    <div class="info-field">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value" th:classappend="${currentUser?.telephone == null ? ' empty' : ''}" th:text="${currentUser?.telephone != null ? currentUser.telephone : 'Not set'}"></span>
                     </div>
                 </div>
-                <div style="display: flex; gap: 15px;">
-                    <button type="submit" class="btn-save">Save Changes</button>
-                    <button type="button" class="btn-cancel" onclick="toggleEdit()">Cancel</button>
+            </div>
+
+            <!-- Edit form -->
+            <form id="info-form" th:action="@{/compte/update}" method="post" style="display:none;">
+                <div class="alert alert-success" th:if="${param.infoSuccess != null}"><i class="fas fa-check-circle"></i> Profile updated successfully.</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="nom" class="form-input" th:value="${currentUser?.nom}" placeholder="Your full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-input" th:value="${currentUser?.email}" placeholder="your@email.com">
+                    </div>
+                </div>
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" name="telephone" class="form-input" th:value="${currentUser?.telephone}" placeholder="06 12 34 56 78">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"><i class="fas fa-check"></i> Save Changes</button>
+                    <button type="button" class="btn-edit" onclick="toggleForm('info-form','info-display')">Cancel</button>
                 </div>
             </form>
         </div>
 
-        <div class="card-main">
-            <div class="right-header">
-                <h2>Order History</h2>
-                <span style="font-size: 13px; color: var(--text-muted);">Last 6 months <i class="fas fa-sliders-h" style="margin-left: 5px;"></i></span>
+        <!-- Addresses -->
+        <div id="section-address" class="section-card" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">Delivery Address</h2>
+                <button class="btn-edit" onclick="toggleForm('address-form','address-display')"><i class="fas fa-pen" style="font-size:11px;margin-right:6px;"></i>Edit</button>
             </div>
 
+            <div id="address-display">
+                <div class="info-field">
+                    <span class="info-label">Address</span>
+                    <span class="info-value" th:classappend="${currentUser?.adresse == null ? ' empty' : ''}" th:text="${currentUser?.adresse != null ? currentUser.adresse : 'No address saved yet'}"></span>
+                </div>
+            </div>
+
+            <form id="address-form" th:action="@{/compte/update-address}" method="post" style="display:none;">
+                <div class="alert alert-success" th:if="${param.addressSuccess != null}"><i class="fas fa-check-circle"></i> Address updated successfully.</div>
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Full Address</label>
+                        <input type="text" name="adresse" class="form-input" th:value="${currentUser?.adresse}" placeholder="Street, City, Postal Code">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"><i class="fas fa-check"></i> Save Address</button>
+                    <button type="button" class="btn-edit" onclick="toggleForm('address-form','address-display')">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Password -->
+        <div id="section-password" class="section-card" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">Change Password</h2>
+            </div>
+            <div class="alert alert-success" th:if="${param.pwdSuccess != null}"><i class="fas fa-check-circle"></i> Password changed successfully.</div>
+            <div class="alert alert-error" th:if="${param.pwdError == 'incorrect'}"><i class="fas fa-times-circle"></i> Current password is incorrect.</div>
+            <div class="alert alert-error" th:if="${param.pwdError == 'mismatch'}"><i class="fas fa-times-circle"></i> New passwords do not match.</div>
+            <form th:action="@{/compte/update-password}" method="post">
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <div class="pwd-wrap">
+                            <input type="password" name="currentPassword" id="pwdCurrent" class="form-input" placeholder="••••••••" required>
+                            <button type="button" class="pwd-eye" onclick="togglePwd('pwdCurrent','eyeCurrent')"><i id="eyeCurrent" class="far fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <div class="pwd-wrap">
+                            <input type="password" name="newPassword" id="pwdNew" class="form-input" placeholder="••••••••" required>
+                            <button type="button" class="pwd-eye" onclick="togglePwd('pwdNew','eyeNew')"><i id="eyeNew" class="far fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm New Password</label>
+                        <div class="pwd-wrap">
+                            <input type="password" name="confirmPassword" id="pwdConfirm" class="form-input" placeholder="••••••••" required>
+                            <button type="button" class="pwd-eye" onclick="togglePwd('pwdConfirm','eyeConfirm')"><i id="eyeConfirm" class="far fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-save"><i class="fas fa-lock"></i> Update Password</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Orders -->
+        <div id="section-orders" class="section-card" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">Order History</h2>
+            </div>
             <table>
                 <thead>
                 <tr>
-                    <th>Order Number</th>
+                    <th>Order</th>
                     <th>Date</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="cmd : ${commandes}">
-                    <td th:text="${cmd.numero}">#TG-0000</td>
-                    <td th:text="${#temporals.format(cmd.dateCommande, 'MMM dd, yyyy')}" style="color: var(--text-muted); font-weight: 400;"></td>
+                    <td th:text="${cmd.numero}" style="font-weight:600;">#TG-0000</td>
+                    <td th:text="${#temporals.format(cmd.dateCommande, 'MMM dd, yyyy')}" style="color:var(--text-muted);font-weight:400;"></td>
                     <td th:text="${cmd.total + ' MAD'}"></td>
                     <td>
-                                <span class="status-pill"
-                                      th:classappend="${cmd.statut == 'Livrée' ? 'status-delivered' : 'status-processing'}"
-                                      th:text="${cmd.statut}"></span>
+                        <span class="status-pill"
+                              th:classappend="${cmd.statut == 'Livrée' ? 'status-delivered' : 'status-processing'}"
+                              th:text="${cmd.statut}"></span>
                     </td>
-                    <td><a th:href="@{'/compte/commande/' + ${cmd.id}}" class="link-blue">View Invoice <i class="fas fa-external-link-alt" style="font-size: 10px; margin-left: 3px;"></i></a></td>
+                    <td><a th:href="@{'/compte/commande/' + ${cmd.id}}" class="link-view">View <i class="fas fa-arrow-right" style="font-size:10px;"></i></a></td>
                 </tr>
-
                 <tr th:if="${#lists.isEmpty(commandes)}">
-                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px; font-weight: 400;">
-                        No order history found.
-                    </td>
+                    <td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px;font-weight:400;">No orders yet.</td>
                 </tr>
                 </tbody>
             </table>
         </div>
+
     </div>
 </div>
 
 <script>
-    function toggleEdit() {
-        var x = document.getElementById("edit-section");
-        if (x.style.display === "none" || x.style.display === "") {
-            x.style.display = "block";
-        } else {
-            x.style.display = "none";
-        }
+    function showSection(name) {
+        ['info','address','password','orders'].forEach(s => {
+            document.getElementById('section-' + s).style.display = s === name ? '' : 'none';
+        });
+        document.querySelectorAll('.nav-item').forEach((el, i) => {
+            el.classList.toggle('active', ['info','address','password','orders'][i] === name);
+        });
     }
+
+    function toggleForm(formId, displayId) {
+        const form = document.getElementById(formId);
+        const display = document.getElementById(displayId);
+        const showing = form.style.display !== 'none';
+        form.style.display = showing ? 'none' : '';
+        display.style.display = showing ? '' : 'none';
+    }
+
+    function togglePwd(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye','fa-eye-slash'); }
+        else { input.type = 'password'; icon.classList.replace('fa-eye-slash','fa-eye'); }
+    }
+
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        const icon = t.querySelector('i');
+        t.className = 'toast ' + (type || 'success');
+        icon.className = type === 'error' ? 'fas fa-times-circle' : 'fas fa-check-circle';
+        document.getElementById('toastMsg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // Auto-detect which section to show based on URL param
+    (function() {
+        const p = new URLSearchParams(window.location.search);
+        if (p.has('infoSuccess')) { showSection('info'); showToast('Profile updated successfully.'); }
+        else if (p.has('addressSuccess')) { showSection('address'); showToast('Address updated successfully.'); }
+        else if (p.has('pwdSuccess')) { showSection('password'); showToast('Password changed successfully.'); }
+        else if (p.has('pwdError')) { showSection('password'); showToast(p.get('pwdError') === 'incorrect' ? 'Current password is incorrect.' : 'Passwords do not match.', 'error'); }
+        history.replaceState(null, '', '/compte');
+    })();
 </script>
 </body>
 </html>

@@ -31,6 +31,7 @@ public class ProduitController {
     @Autowired private CategorieService categorieService;
     @Autowired private AvisRepository avisRepository;
     @Autowired private CommandeRepository commandeRepository;
+    @Autowired private CommandeItemRepository commandeItemRepository;
     @Autowired private AppUserRepository appUserRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
@@ -63,11 +64,14 @@ public class ProduitController {
     }
 
     @GetMapping("/produit/{id}")
-    public String produitDetails(@PathVariable Long id, Model model) {
+    public String produitDetails(@PathVariable Long id, Model model, Principal principal) {
         Produit produit = produitService.getProduitById(id);
         if (produit == null) return "redirect:/";
         model.addAttribute("produit", produit);
         model.addAttribute("avisList", avisRepository.findByProduitId(id));
+        if (principal != null) {
+            appUserRepository.findByUsername(principal.getName()).ifPresent(u -> model.addAttribute("currentUser", u));
+        }
         
         List<Produit> related = new ArrayList<>();
         if (produit.getCategorie() != null) {
@@ -118,7 +122,40 @@ public class ProduitController {
                 appUserRepository.save(u);
             });
         }
-        return "redirect:/compte?success";
+        return "redirect:/compte?infoSuccess";
+    }
+
+    @PostMapping("/compte/update-address")
+    public String updateAddress(@RequestParam(required = false) String adresse, Principal principal) {
+        if (principal != null) {
+            appUserRepository.findByUsername(principal.getName()).ifPresent(u -> {
+                u.setAdresse(adresse != null && !adresse.isBlank() ? adresse.trim() : null);
+                appUserRepository.save(u);
+            });
+        }
+        return "redirect:/compte?addressSuccess";
+    }
+
+    @PostMapping("/compte/update-password")
+    public String updatePassword(
+            @RequestParam String currentPassword,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            Principal principal,
+            RedirectAttributes ra) {
+        if (principal == null) return "redirect:/compte";
+        var userOpt = appUserRepository.findByUsername(principal.getName());
+        if (userOpt.isEmpty()) return "redirect:/compte";
+        var u = userOpt.get();
+        if (!passwordEncoder.matches(currentPassword, u.getPassword())) {
+            return "redirect:/compte?pwdError=incorrect";
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            return "redirect:/compte?pwdError=mismatch";
+        }
+        u.setPassword(passwordEncoder.encode(newPassword));
+        appUserRepository.save(u);
+        return "redirect:/compte?pwdSuccess";
     }
 
     @GetMapping("/compte/commande/{id}")
@@ -215,11 +252,19 @@ public class ProduitController {
     }
 
     @GetMapping("/checkout")
-    public String showCheckout(Model model, HttpSession session) {
+    public String showCheckout(Model model, HttpSession session, Principal principal) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart == null || cart.isEmpty()) return "redirect:/";
         double total = cart.values().stream().mapToDouble(CartItem::getTotalPrice).sum();
         model.addAttribute("total", total);
+        model.addAttribute("cartItems", cart.values());
+        if (principal != null) {
+            appUserRepository.findByUsername(principal.getName()).ifPresent(u -> {
+                model.addAttribute("currentUserNom", u.getNom() != null ? u.getNom() : u.getUsername());
+                model.addAttribute("currentUserTel", u.getTelephone() != null ? u.getTelephone() : "");
+                model.addAttribute("currentUserAdresse", u.getAdresse() != null ? u.getAdresse() : "");
+            });
+        }
         return "checkout";
     }
 
@@ -253,14 +298,21 @@ public class ProduitController {
             cmd.setMethodePaiement(paiement);
             cmd.setClientNom(principal != null ? principal.getName() : nom);
             commandeRepository.save(cmd);
+            for (CartItem item : cart.values()) {
+                commandeItemRepository.save(new CommandeItem(cmd, item.getProduit(), item.getQuantite(), item.getProduit().getPrix()));
+                Produit p = item.getProduit();
+                p.setQuantiteStock(Math.max(0, p.getQuantiteStock() - item.getQuantite()));
+                produitService.saveProduit(p);
+            }
             session.removeAttribute("cart");
+            if (principal != null) {
+                appUserRepository.findByUsername(principal.getName()).ifPresent(u -> {
+                    u.setAdresse(adresse);
+                    appUserRepository.save(u);
+                });
+            }
         }
-        return "redirect:/order-confirmation";
-    }
-
-    @GetMapping("/order-confirmation")
-    public String orderConfirmation() {
-        return "order_success";
+        return "redirect:/?orderSuccess";
     }
 
     // ==========================================
@@ -270,7 +322,79 @@ public class ProduitController {
     @GetMapping("/gerant/dashboard")
     public String gerantInterface(Model model) {
         model.addAttribute("produits", produitService.getAllProduits());
-        return "admin_products";
+        model.addAttribute("marques", marqueService.getAllMarques());
+        model.addAttribute("categories", categorieService.getAllCategories());
+        return "gerant_products";
+    }
+
+    @GetMapping("/gerant/products")
+    public String gerantProducts(Model model) {
+        model.addAttribute("produits", produitService.getAllProduits());
+        model.addAttribute("marques", marqueService.getAllMarques());
+        model.addAttribute("categories", categorieService.getAllCategories());
+        return "gerant_products";
+    }
+
+    @PostMapping("/gerant/products/save")
+    public String gerantSaveProduct(
+            @RequestParam String nom,
+            @RequestParam(required = false) String description,
+            @RequestParam double prix,
+            @RequestParam int quantiteStock,
+            @RequestParam Long marque,
+            @RequestParam Long categorie) {
+        Produit p = new Produit();
+        p.setNom(nom);
+        p.setDescription(description);
+        p.setPrix(prix);
+        p.setQuantiteStock(quantiteStock);
+        marqueService.getAllMarques().stream().filter(m -> m.getId().equals(marque)).findFirst().ifPresent(p::setMarque);
+        categorieService.getAllCategories().stream().filter(c -> c.getId().equals(categorie)).findFirst().ifPresent(p::setCategorie);
+        produitService.saveProduit(p);
+        return "redirect:/gerant/products";
+    }
+
+    @PostMapping("/gerant/products/update")
+    public String gerantUpdateProduct(
+            @RequestParam Long id,
+            @RequestParam String nom,
+            @RequestParam(required = false) String description,
+            @RequestParam double prix,
+            @RequestParam int quantiteStock,
+            @RequestParam Long marque,
+            @RequestParam Long categorie) {
+        Produit p = produitService.getProduitById(id);
+        if (p != null) {
+            p.setNom(nom);
+            p.setDescription(description);
+            p.setPrix(prix);
+            p.setQuantiteStock(quantiteStock);
+            marqueService.getAllMarques().stream().filter(m -> m.getId().equals(marque)).findFirst().ifPresent(p::setMarque);
+            categorieService.getAllCategories().stream().filter(c -> c.getId().equals(categorie)).findFirst().ifPresent(p::setCategorie);
+            produitService.saveProduit(p);
+        }
+        return "redirect:/gerant/products";
+    }
+
+    @GetMapping("/gerant/commandes")
+    public String gerantCommandes(Model model) {
+        model.addAttribute("commandes", commandeRepository.findAll());
+        return "gerant_commandes";
+    }
+
+    @PostMapping("/gerant/commandes/statut/{id}")
+    public String gerantUpdateStatut(@PathVariable Long id, @RequestParam String statut) {
+        commandeRepository.findById(id).ifPresent(cmd -> {
+            cmd.setStatut(statut);
+            commandeRepository.save(cmd);
+        });
+        return "redirect:/gerant/commandes?success";
+    }
+
+    @GetMapping("/gerant/avis")
+    public String gerantAvis(Model model) {
+        model.addAttribute("avisList", avisRepository.findAll());
+        return "gerant_avis";
     }
 
     @GetMapping("/gerant/nouveau")
@@ -318,6 +442,16 @@ public class ProduitController {
         return "redirect:/gerant/categories";
     }
 
+    @PostMapping("/gerant/categories/update")
+    public String updateCategorie(@RequestParam Long id, @RequestParam String nom) {
+        categorieService.getAllCategories().stream()
+            .filter(c -> c.getId().equals(id)).findFirst().ifPresent(c -> {
+                c.setNom(nom);
+                categorieService.saveCategorie(c);
+            });
+        return "redirect:/gerant/categories";
+    }
+
     @GetMapping("/gerant/categories/delete/{id}")
     public String deleteCategorie(@PathVariable Long id) {
         categorieService.deleteCategorie(id);
@@ -331,11 +465,13 @@ public class ProduitController {
     }
 
     @PostMapping("/gerant/promotions/apply")
-    public String applyPromotion(@RequestParam Long produitId, @RequestParam Double remise) {
+    public String applyPromotion(@RequestParam Long produitId, @RequestParam int remise) {
         Produit p = produitService.getProduitById(produitId);
         if (p != null) {
-            double nouveauPrix = p.getPrix() * (1 - (remise / 100));
-            p.setPrix(nouveauPrix);
+            double base = p.getPrixOriginal() > 0 ? p.getPrixOriginal() : p.getPrix();
+            p.setPrixOriginal(base);
+            p.setRemise(remise);
+            p.setPrix(base * (1 - remise / 100.0));
             produitService.saveProduit(p);
             return "redirect:/gerant/promotions?success";
         }
@@ -432,13 +568,22 @@ public class ProduitController {
         return "admin_commandes";
     }
 
+    @GetMapping("/admin/commandes/{id}")
+    public String commandeDetails(@PathVariable Long id, Model model) {
+        commandeRepository.findById(id).ifPresent(cmd -> {
+            model.addAttribute("cmd", cmd);
+            appUserRepository.findByUsername(cmd.getClientNom()).ifPresent(u -> model.addAttribute("client", u));
+        });
+        return "admin_commande_details";
+    }
+
     @PostMapping("/admin/commandes/statut/{id}")
     public String updateCommandeStatut(@PathVariable Long id, @RequestParam String statut) {
         commandeRepository.findById(id).ifPresent(cmd -> {
             cmd.setStatut(statut);
             commandeRepository.save(cmd);
         });
-        return "redirect:/admin/commandes";
+        return "redirect:/admin/commandes/" + id;
     }
 
     @GetMapping("/admin/products")
@@ -555,11 +700,13 @@ public class ProduitController {
     }
 
     @PostMapping("/admin/promotions/apply")
-    public String adminApplyPromotion(@RequestParam Long produitId, @RequestParam Double remise) {
+    public String adminApplyPromotion(@RequestParam Long produitId, @RequestParam int remise) {
         Produit p = produitService.getProduitById(produitId);
         if (p != null) {
-            double nouveauPrix = p.getPrix() * (1 - (remise / 100));
-            p.setPrix(nouveauPrix);
+            double base = p.getPrixOriginal() > 0 ? p.getPrixOriginal() : p.getPrix();
+            p.setPrixOriginal(base);
+            p.setRemise(remise);
+            p.setPrix(base * (1 - remise / 100.0));
             produitService.saveProduit(p);
             return "redirect:/admin/promotions?success";
         }

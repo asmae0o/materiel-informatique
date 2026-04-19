@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
+    <meta charset="UTF-8">
+    <title>Promotions | Gérant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; color: var(--text-main); }
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 30px; margin-bottom: 40px; }
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .nav-item i { width: 20px; font-size: 16px; }
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+        .bottom-nav { margin-top: auto; }
+
+        .main { flex: 1; padding: 40px 6%; overflow-y: auto; background: var(--surface); }
+        .main-header { margin-bottom: 36px; }
+        .main-header h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 8px; }
+        .main-header p { color: var(--text-muted); font-size: 15px; margin: 0; }
+
+        .layout { display: grid; grid-template-columns: 320px 1fr; gap: 32px; align-items: flex-start; }
+
+        .apply-card { background: var(--bg); border-radius: 20px; padding: 28px; }
+        .apply-card h2 { font-size: 17px; font-weight: 700; margin: 0 0 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); font-size: 14px; outline: none; font-family: inherit; background: #fff; box-sizing: border-box; transition: 0.2s; }
+        .form-input:focus { border-color: #1a1c1d; }
+        .btn-apply { width: 100%; background: #1a1c1d; color: white; padding: 13px; border-radius: 999px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; margin-top: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-apply:hover { background: #000; }
+        .btn-apply span { display: inline; }
+        .btn-apply .spinner { display: none; }
+        .btn-apply.loading .spinner { display: inline; }
+        .btn-apply.loading span { display: none; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px 14px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+        td { padding: 16px 10px; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; }
+        .promo-badge { background: #1a1c1d; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 8px; display: inline-block; }
+        .no-promo { color: var(--text-muted); font-size: 13px; }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #1a1c1d; color: #fff; padding: 16px 22px; border-radius: 16px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: #34c759; font-size: 18px; }
+        .toast.error i { color: #ff3b30; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/gerant_sidebar :: gerantSidebar('promotions')}"></div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg">Promotion applied!</span></div>
+
+<div class="main">
+    <div class="main-header">
+        <h1>Promotions</h1>
+        <p>Apply discounts to products. The original price is saved automatically.</p>
+    </div>
+
+    <div class="layout">
+        <!-- Apply form -->
+        <div class="apply-card">
+            <h2><i class="fas fa-percent" style="margin-right:8px;font-size:14px;"></i>Apply Discount</h2>
+            <form id="promoForm" onsubmit="applyPromo(event)">
+                <div class="form-group">
+                    <label>Product</label>
+                    <select name="produitId" class="form-input" required>
+                        <option value="">— Choose a product —</option>
+                        <option th:each="p : ${produits}" th:value="${p.id}" th:text="${p.nom} + ' (' + ${p.prix} + ' MAD)'"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Discount (%)</label>
+                    <input type="number" name="remise" class="form-input" min="1" max="99" placeholder="ex: 20" required>
+                </div>
+                <button type="submit" class="btn-apply" id="applyBtn">
+                    <span><i class="fas fa-check" style="margin-right:6px;"></i>Apply Discount</span>
+                    <span class="spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Products table -->
+        <div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Current Price</th>
+                    <th>Original Price</th>
+                    <th>Discount</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${produits}">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:36px;height:36px;background:var(--bg);border-radius:8px;overflow:hidden;display:flex;justify-content:center;align-items:center;color:#c1c6d6;flex-shrink:0;">
+                                <img th:if="${p.getPrimaryImage() != null}" th:src="@{${p.getPrimaryImage()}}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                                <i th:unless="${p.getPrimaryImage() != null}" class="fas fa-box" style="font-size:13px;"></i>
+                            </div>
+                            <span th:text="${p.nom}" style="font-weight:600;font-size:14px;"></span>
+                        </div>
+                    </td>
+                    <td style="font-weight:600;" th:text="${p.prix} + ' MAD'"></td>
+                    <td>
+                        <span th:if="${p.prixOriginal > 0}" th:text="${p.prixOriginal} + ' MAD'" style="color:var(--text-muted);text-decoration:line-through;font-size:13px;"></span>
+                        <span th:unless="${p.prixOriginal > 0}" class="no-promo">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${p.remise > 0}" class="promo-badge" th:text="'-' + ${p.remise} + '%'"></span>
+                        <span th:unless="${p.remise > 0}" class="no-promo">No promo</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function applyPromo(event) {
+        event.preventDefault();
+        const btn = document.getElementById('applyBtn');
+        btn.classList.add('loading'); btn.disabled = true;
+        try {
+            const body = new URLSearchParams(new FormData(document.getElementById('promoForm'))).toString();
+            const res = await fetch('/gerant/promotions/apply', { method: 'POST', body, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+            if (res.ok || res.redirected) {
+                showToast('Discount applied successfully!', false);
+                setTimeout(() => window.location.reload(), 1400);
+            } else {
+                showToast('Error applying discount.', true);
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        } catch {
+            showToast('Network error.', true);
+            btn.classList.remove('loading'); btn.disabled = false;
+        }
+    }
+
+    function showToast(msg, isError) {
+        const t = document.getElementById('toast');
+        t.className = 'toast' + (isError ? ' error' : '');
+        t.querySelector('i').className = isError ? 'fas fa-times-circle' : 'fas fa-check-circle';
+        document.getElementById('toastMsg').textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    const p = new URLSearchParams(window.location.search);
+    if (p.has('success')) showToast('Discount applied successfully!', false);
+    if (p.has('error')) showToast('Product not found.', true);
+</script>
+</body>
+</html>

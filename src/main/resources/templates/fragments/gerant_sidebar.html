@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="gerantSidebar(activePage)" class="sidebar">
+    <div class="brand">
+        <h2>Quantum</h2>
+        <span>Gérant Panel</span>
+    </div>
+
+    <a th:href="@{/gerant/commandes}" class="nav-item" th:classappend="${activePage == 'commandes'} ? ' active' : ''">
+        <i class="fas fa-shopping-cart"></i> Orders
+    </a>
+    <a th:href="@{/gerant/products}" class="nav-item" th:classappend="${activePage == 'products'} ? ' active' : ''">
+        <i class="fas fa-box-open"></i> Products
+    </a>
+    <a th:href="@{/gerant/categories}" class="nav-item" th:classappend="${activePage == 'categories'} ? ' active' : ''">
+        <i class="fas fa-tags"></i> Categories
+    </a>
+    <a th:href="@{/gerant/promotions}" class="nav-item" th:classappend="${activePage == 'promotions'} ? ' active' : ''">
+        <i class="fas fa-percent"></i> Promotions
+    </a>
+    <a th:href="@{/gerant/avis}" class="nav-item" th:classappend="${activePage == 'avis'} ? ' active' : ''">
+        <i class="fas fa-comment-alt"></i> Reviews
+    </a>
+
+    <div class="bottom-nav">
+        <a th:href="@{/}" class="nav-item"><i class="fas fa-store"></i> Storefront</a>
+        <form th:action="@{/logout}" method="post" style="margin:0;">
+            <button type="submit" class="nav-item" style="background:none;border:none;width:100%;cursor:pointer;font-family:inherit;">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

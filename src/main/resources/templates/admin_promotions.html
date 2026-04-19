@@ -7,44 +7,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh;}
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; }
 
-        /* Sidebar */
-        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column;}
-        .brand { padding: 0 30px; margin-bottom: 40px;}
-        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em;}
-        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;}
-
-        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500;}
-        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
-        .nav-item i { width: 20px; font-size: 16px;}
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column; }
+        .brand { padding: 0 30px; margin-bottom: 40px; }
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .nav-item i { width: 20px; font-size: 16px; }
         .nav-item:hover:not(.active) { color: var(--text-main); }
         .bottom-nav { margin-top: auto; }
 
-        /* Main Content */
-        .main { flex: 1; padding: 0; overflow-y: auto;}
-        .topbar { display: flex; justify-content: space-between; padding: 20px 60px; border-bottom: 1px solid rgba(0,0,0,0.04); background: var(--surface);}
-        .content-area { padding: 40px 60px; max-width: 1000px;}
+        .main { flex: 1; padding: 40px 6%; overflow-y: auto; }
+        .main-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+        .main-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0; }
+        .main-header p { color: var(--text-muted); font-size: 16px; margin: 0; }
 
-        .main-header { margin-bottom: 40px;}
-        .main-header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0;}
-        .main-header p { color: var(--text-muted); font-size: 16px; margin: 0; max-width: 600px;}
+        .promo-list { display: flex; flex-direction: column; gap: 12px; }
+        .promo-row { background: var(--surface); border-radius: 20px; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(26,28,29,0.02); border: 1px solid rgba(0,0,0,0.04); }
+        .promo-info h4 { margin: 0 0 4px 0; font-size: 15px; font-weight: 600; }
+        .promo-info span { font-size: 13px; color: var(--text-muted); }
 
-        /* List of promotions */
-        .promo-list { display: flex; flex-direction: column; gap: 15px; }
-        .promo-row { background: var(--surface); border-radius: 20px; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(26,28,29,0.02); border: 1px solid rgba(0,0,0,0.02);}
+        .promo-form { display: flex; align-items: center; gap: 10px; }
+        .form-input-small { width: 80px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: var(--bg); font-size: 14px; outline: none; text-align: center; font-family: inherit; }
+        .form-input-small:focus { border-color: #1a1c1d; box-shadow: 0 0 0 3px rgba(26,28,29,0.08); }
+        .btn-apply { background: #1a1c1d; color: white; padding: 10px 22px; border-radius: 999px; font-weight: 600; font-size: 13px; border: none; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        .btn-apply:hover { background: #000; }
 
-        .promo-info h4 { margin: 0 0 5px 0; font-size: 16px; font-weight: 600;}
-        .promo-info span { font-size: 13px; color: var(--text-muted);}
-
-        .promo-form { display: flex; align-items: center; gap: 10px;}
-        .form-input-small { width: 80px; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: var(--bg); font-size: 14px; outline: none; text-align: center;}
-        .form-input-small:focus { border-color: var(--primary); }
-        .btn-apply { background: #e8f5e9; color: #137333; padding: 12px 20px; border-radius: 999px; font-weight: 600; font-size: 13px; border: none; cursor: pointer; transition: 0.2s;}
-        .btn-apply:hover { background: #ceead1; }
-
-        .alert-success { background: #e8f5e9; color: #137333; padding: 15px; border-radius: 12px; margin-bottom: 30px; text-align: center; font-weight: 500;}
+        /* Toast */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; padding: 16px 20px; align-items: flex-start; gap: 12px; min-width: 300px; position: relative; overflow: hidden; pointer-events: auto; animation: toastSlideIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards; border: 1px solid rgba(0,0,0,0.05); }
+        .toast.closing { animation: toastSlideOut 0.3s ease forwards; }
+        .toast-icon { color: #10b981; font-size: 20px; margin-top: 2px; }
+        .toast-content { flex: 1; }
+        .toast-title { font-size: 15px; font-weight: 600; color: #111827; margin: 0 0 4px 0; display: block; }
+        .toast-msg { font-size: 13px; color: #6b7280; margin: 0; }
+        .toast-close { color: #d1d5db; cursor: pointer; font-size: 14px; background: none; border: none; padding: 4px; display: flex; transition: color 0.2s; margin-top: 2px; }
+        .toast-close:hover { color: #6b7280; }
+        .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; background: #34d399; width: 100%; transform-origin: left; animation: toastProgress 3s linear forwards; }
+        @keyframes toastSlideIn { from { opacity: 0; transform: translateX(40px) scale(0.95); } to { opacity: 1; transform: translateX(0) scale(1); } }
+        @keyframes toastSlideOut { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(40px) scale(0.95); } }
+        @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
     </style>
 </head>
 <body>
@@ -52,32 +57,61 @@
 <div th:replace="~{fragments/admin_sidebar :: adminSidebar('promotions')}"></div>
 
 <div class="main">
-
-
-    <div class="content-area">
-        <div th:if="${param.success}" class="alert-success">Promotion successfully applied!</div>
-
-        <div class="main-header">
+    <div class="main-header">
+        <div>
             <h1>Promotions Management</h1>
             <p>Apply temporary discounts (percentage) to your hardware assets.</p>
         </div>
+    </div>
 
-        <div class="promo-list">
-            <div th:each="p : ${produits}" class="promo-row">
-                <div class="promo-info">
-                    <h4 th:text="${p.nom}">Product Name</h4>
-                    <span th:text="'Current price: ' + ${p.prix} + ' MAD'">Price</span>
-                </div>
-
-                <form th:action="@{/admin/promotions/apply}" method="post" class="promo-form">
-                    <input type="hidden" name="produitId" th:value="${p.id}">
-                    <input type="number" name="remise" placeholder="0%" min="0" max="100" required class="form-input-small">
-                    <button type="submit" class="btn-apply">Apply</button>
-                </form>
+    <div class="promo-list">
+        <div th:each="p : ${produits}" class="promo-row">
+            <div class="promo-info">
+                <h4 th:text="${p.nom}">Product Name</h4>
+                <span th:text="'Current price: ' + ${p.prix} + ' MAD'"></span>
             </div>
+            <form class="promo-form" onsubmit="applyPromo(event, this)">
+                <input type="hidden" name="produitId" th:value="${p.id}">
+                <input type="hidden" name="productName" th:value="${p.nom}">
+                <input type="number" name="remise" placeholder="%" min="0" max="100" required class="form-input-small">
+                <button type="submit" class="btn-apply">Apply</button>
+            </form>
         </div>
     </div>
 </div>
 
+<script>
+    async function applyPromo(e, form) {
+        e.preventDefault();
+        const btn = form.querySelector('.btn-apply');
+        const name = form.querySelector('[name="productName"]').value;
+        const remise = form.querySelector('[name="remise"]').value;
+        btn.disabled = true; btn.textContent = 'Applying...';
+        try {
+            const params = new URLSearchParams(new FormData(form)).toString();
+            const res = await fetch('/admin/promotions/apply', { method: 'POST', body: params, credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+            if (res.ok || res.redirected) {
+                showToast('Promotion applied', `${remise}% discount applied to "${name}".`);
+                form.querySelector('[name="remise"]').value = '';
+                setTimeout(() => window.location.reload(), 1500);
+            } else { alert('Error applying promotion.'); }
+        } catch { alert('Network error.'); }
+        btn.disabled = false; btn.textContent = 'Apply';
+    }
+
+    function showToast(title, message) {
+        let container = document.getElementById('toastWrapper');
+        if (!container) { container = document.createElement('div'); container.id = 'toastWrapper'; container.className = 'toast-container'; document.body.appendChild(container); }
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <div class="toast-icon"><i class="far fa-check-circle"></i></div>
+            <div class="toast-content"><strong class="toast-title">${title}</strong><p class="toast-msg">${message}</p></div>
+            <button class="toast-close" onclick="this.closest('.toast').classList.add('closing');setTimeout(()=>this.closest('.toast').remove(),300)"><i class="fas fa-times"></i></button>
+            <div class="toast-progress"></div>`;
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentElement) { toast.classList.add('closing'); setTimeout(() => toast.remove(), 300); } }, 3000);
+    }
+</script>
 </body>
 </html>

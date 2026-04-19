@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
@@ -7,95 +7,132 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #0071e3; }
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; --primary: #1a1c1d; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 0; }
 
-        .navbar { display: flex; justify-content: space-between; padding: 20px 5%; background: var(--surface); border-bottom: 1px solid rgba(0,0,0,0.04); }
-        .logo { font-weight: 700; color: var(--text-main); text-decoration: none; font-size: 18px;}
+        .checkout-wrapper { max-width: 1100px; margin: 40px auto 80px; padding: 0 5%; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 
-        .container { max-width: 640px; margin: 40px auto; padding: 0 20px; }
-        .header { text-align: center; margin-bottom: 40px;}
-        .header span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 600;}
-        .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 5px 0 0 0; }
+        .page-title { text-align: center; margin-bottom: 40px; padding: 0 5%; }
+        .page-title span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #5e5e63; font-weight: 600; }
+        .page-title h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 6px 0 0 0; }
 
-        /* Summary Card */
-        .summary-card { background: rgba(0, 113, 227, 0.03); border: 1px solid rgba(0, 113, 227, 0.1); border-radius: 20px; padding: 30px; margin-bottom: 40px;}
-        .summary-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 20px;}
-        .summary-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0, 113, 227, 0.1); padding-top: 20px; margin-top: 20px; font-size: 20px; font-weight: 700;}
+        /* Left panel */
+        .left-panel { display: flex; flex-direction: column; gap: 24px; }
 
-        /* Sections */
-        .section-title { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: 600; margin-bottom: 25px;}
-        .circle-num { width: 28px; height: 28px; background: #e8e8ed; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-main);}
+        .summary-card { background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 24px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .card-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #5e5e63; font-weight: 700; margin-bottom: 20px; }
+        .summary-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .item-img { width: 56px; height: 56px; border-radius: 12px; background: #f5f5f7; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #c1c6d6; }
+        .item-img img { width: 100%; height: 100%; object-fit: cover; }
+        .item-info { flex: 1; min-width: 0; }
+        .item-name { font-size: 14px; font-weight: 600; color: #1a1c1d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+        .qty-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.12); background: #fff; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: 0.15s; line-height: 1; }
+        .qty-btn:hover { background: #1a1c1d; color: #fff; border-color: #1a1c1d; }
+        .qty-controls span { font-size: 13px; font-weight: 600; min-width: 16px; text-align: center; }
+        .item-price { font-size: 14px; font-weight: 600; color: #1a1c1d; white-space: nowrap; }
+        .summary-total { display: flex; justify-content: space-between; align-items: center; padding-top: 18px; margin-top: 8px; font-size: 20px; font-weight: 700; color: var(--text-main); }
+
+        .payment-card { background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 24px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .payment-option { border: 2px solid #1a1c1d; border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+        .payment-icon { width: 40px; height: 40px; background: #f5f5f7; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; color: #1a1c1d; flex-shrink: 0; }
+
+        /* Right panel */
+        .right-panel { background: var(--surface); border: 1px solid rgba(0,0,0,0.06); border-radius: 24px; padding: 36px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+
+        .section-title { display: flex; align-items: center; gap: 14px; font-size: 18px; font-weight: 700; margin-bottom: 28px; letter-spacing: -0.01em; }
+        .circle-num { width: 30px; height: 30px; background: #f5f5f7; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: 700; color: var(--text-main); flex-shrink: 0; }
 
         .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-        input { width: 100%; padding: 18px 20px; background: var(--surface); border: 1px solid transparent; border-radius: 12px; font-size: 15px; color: var(--text-main); font-family: inherit; outline: none; transition: 0.2s; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: #5e5e63; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 16px 18px; background: #f9f9fb; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; font-size: 15px; color: var(--text-main); font-family: inherit; outline: none; transition: 0.2s; box-sizing: border-box; }
+        .form-group input:focus { border-color: #1a1c1d; background: #fff; box-shadow: 0 0 0 3px rgba(26,28,29,0.08); }
 
-        .payment-method { border: 2px solid var(--primary); background: var(--surface); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 14px rgba(0, 113, 227, 0.05);}
-        .payment-icon { width: 40px; height: 40px; background: rgba(0, 113, 227, 0.1); color: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px;}
+        .btn-checkout { width: 100%; padding: 17px; background: #1a1c1d; color: white; border: none; border-radius: 999px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 32px; display: flex; justify-content: center; align-items: center; gap: 10px; font-family: inherit; }
+        .btn-checkout:hover { background: #000; }
 
-        .btn-checkout { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 999px; font-size: 17px; font-weight: 500; cursor: pointer; transition: 0.2s; margin-top: 40px; display: flex; justify-content: center; align-items: center; gap: 10px;}
-        .btn-checkout:hover { background: #005bb5; }
-
-        .secure-footer { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px;}
+        .secure-footer { text-align: center; font-size: 12px; color: #5e5e63; margin-top: 16px; }
     </style>
 </head>
 <body>
-<div class="navbar">
-    <a th:href="@{/}" class="logo" style="display: flex; align-items: center;">
-        <img th:src="@{/img/logo.png}" alt="Quantum" style="height: 28px; width: auto;">
-    </a>
-    <a th:href="@{/panier}" style="color: var(--text-main); text-decoration: none; font-size: 14px;">Cancel</a>
+<div th:replace="~{fragments/storefront_header :: storefrontHeader}"></div>
+
+<div class="page-title">
+    <span>Secure Checkout</span>
+    <h1>Review &amp; Pay</h1>
 </div>
 
-<div class="container">
-    <div class="header">
-        <span>Secure Checkout</span>
-        <h1>Review & Pay</h1>
-    </div>
+<form th:action="@{/cart/validate}" method="post">
+    <div class="checkout-wrapper">
 
-    <div class="summary-card">
-        <div class="summary-header">
-            <span>Order Summary</span>
-            <span style="color: var(--primary);">Items</span>
-        </div>
-        <div class="summary-total">
-            <span>Total</span>
-            <span th:text="'$' + ${total}"></span>
-        </div>
-    </div>
-
-    <form th:action="@{/cart/validate}" method="post">
-        <div class="section-title"><div class="circle-num">1</div> Shipping Information</div>
-
-        <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" name="nom" th:value="${#authentication.name != 'anonymousUser' ? #authentication.name : ''}" placeholder="Enter your full name" required>
-        </div>
-        <div class="form-group">
-            <label>Delivery Address</label>
-            <input type="text" name="adresse" placeholder="Street address, city, and zip code" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 50px;">
-            <label>Phone Number</label>
-            <input type="tel" name="tel" placeholder="+1 (555) 000-0000" required>
-        </div>
-
-        <div class="section-title"><div class="circle-num">2</div> Payment Method</div>
-
-        <div class="payment-method">
-            <div class="payment-icon"><i class="fas fa-truck"></i></div>
-            <div style="flex: 1;">
-                <div style="font-weight: 600; font-size: 15px;">Cash on Delivery</div>
-                <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Pay with cash when your order arrives</div>
+        <!-- LEFT: Summary + Payment -->
+        <div class="left-panel">
+            <div class="summary-card">
+                <div class="card-label">Order Summary</div>
+                <div th:each="item : ${cartItems}" class="summary-item">
+                    <div class="item-img">
+                        <img th:if="${item.produit.getPrimaryImage() != null}" th:src="@{${item.produit.getPrimaryImage()}}" alt="">
+                        <i th:unless="${item.produit.getPrimaryImage() != null}" class="fas fa-box"></i>
+                    </div>
+                    <div class="item-info">
+                        <div class="item-name" th:text="${item.produit.nom}"></div>
+                        <div class="qty-controls">
+                            <button type="button" class="qty-btn" th:onclick="|updateQty('min', ${item.produit.id})|">−</button>
+                            <span th:text="${item.quantite}"></span>
+                            <button type="button" class="qty-btn" th:onclick="|updateQty('add', ${item.produit.id})|">+</button>
+                        </div>
+                    </div>
+                    <div class="item-price" th:text="${item.produit.prix} + ' MAD'"></div>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span th:text="${total} + ' MAD'"></span>
+                </div>
             </div>
-            <input type="radio" name="paiement" value="Paiement à la livraison" checked style="width: auto; box-shadow: none;">
+
+            <div class="payment-card">
+                <div class="card-label">Payment Method</div>
+                <div class="payment-option">
+                    <div class="payment-icon"><i class="fas fa-truck"></i></div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 15px;">Cash on Delivery</div>
+                        <div style="font-size: 13px; color: #5e5e63; margin-top: 3px;">Pay with cash when your order arrives</div>
+                    </div>
+                    <input type="radio" name="paiement" value="Paiement à la livraison" checked style="width: auto; accent-color: #1a1c1d;">
+                </div>
+            </div>
         </div>
 
-        <button type="submit" class="btn-checkout">Place Order <i class="fas fa-arrow-right"></i></button>
-        <div class="secure-footer"><i class="fas fa-lock"></i> Encryption ensures your information is private and secure.</div>
-    </form>
-</div>
+        <!-- RIGHT: Shipping form -->
+        <div class="right-panel">
+            <div class="section-title"><div class="circle-num">1</div> Shipping Information</div>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="nom" th:value="${currentUserNom}" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label>Delivery Address</label>
+                <input type="text" name="adresse" th:value="${currentUserAdresse}" placeholder="Street address, city, and zip code" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" name="tel" th:value="${currentUserTel}" placeholder="+212 6XX XXX XXX" required>
+            </div>
+
+            <button type="submit" class="btn-checkout">Place Order <i class="fas fa-arrow-right"></i></button>
+            <div class="secure-footer"><i class="fas fa-lock"></i> Your information is private and secure.</div>
+        </div>
+
+    </div>
+</form>
+<script>
+    async function updateQty(action, id) {
+        await fetch('/cart/' + (action === 'add' ? 'add-qty' : 'min-qty') + '/' + id, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        window.location.reload();
+    }
+</script>
 </body>
 </html>

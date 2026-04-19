@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
+    <meta charset="UTF-8">
+    <title>Orders | Gérant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; min-height: 100vh; color: var(--text-main); }
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 30px; margin-bottom: 40px; }
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .nav-item i { width: 20px; font-size: 16px; }
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+        .bottom-nav { margin-top: auto; }
+
+        .main { flex: 1; padding: 40px 6%; overflow-y: auto; background: var(--surface); }
+        .page-title { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 6px; }
+        .page-sub { color: var(--text-muted); font-size: 15px; margin: 0 0 36px; }
+
+        .card { background: var(--bg); border-radius: 20px; padding: 24px; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px 14px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+        th:nth-child(1) { width: 130px; }
+        th:nth-child(3) { width: 110px; }
+        th:nth-child(4) { width: 110px; }
+        th:nth-child(6) { width: 150px; }
+        td { padding: 16px 10px; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; }
+        tbody tr:hover { background: rgba(0,0,0,0.01); }
+        tbody tr { cursor: pointer; }
+        .num { font-weight: 700; font-size: 13px; }
+        .total { font-weight: 600; }
+        .muted { color: var(--text-muted); font-size: 13px; }
+        .status-select { padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; outline: none; font-family: inherit; }
+        .empty { text-align: center; color: var(--text-muted); padding: 60px 20px; }
+        .empty i { font-size: 2.5rem; color: #c1c6d6; display: block; margin-bottom: 12px; }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #1a1c1d; color: #fff; padding: 16px 22px; border-radius: 16px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: #34c759; font-size: 18px; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/gerant_sidebar :: gerantSidebar('commandes')}"></div>
+
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span>Status updated!</span></div>
+
+<div class="main">
+    <h1 class="page-title">Orders</h1>
+    <p class="page-sub">Track and update order fulfillment statuses.</p>
+
+    <div class="card">
+        <div th:if="${#lists.isEmpty(commandes)}" class="empty">
+            <i class="fas fa-box-open"></i>
+            No orders yet.
+        </div>
+        <table th:if="${!#lists.isEmpty(commandes)}">
+            <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Client</th>
+                <th>Total</th>
+                <th>Date</th>
+                <th>Address</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cmd : ${commandes}">
+                <td class="num" th:text="${cmd.numero}"></td>
+                <td th:text="${cmd.clientNom}"></td>
+                <td class="total" th:text="${cmd.total} + ' MAD'"></td>
+                <td class="muted" th:text="${cmd.dateCommande}"></td>
+                <td class="muted" th:text="${cmd.adresseLivraison}"></td>
+                <td>
+                    <form th:action="@{'/gerant/commandes/statut/' + ${cmd.id}}" method="post" style="margin:0;" onsubmit="showToast()">
+                        <select name="statut" class="status-select" onchange="this.form.submit()"
+                                th:style="${cmd.statut == 'Livrée'} ? 'background:#d4edda;color:#155724;' :
+                                          (${cmd.statut == 'Annulée'} ? 'background:#f8d7da;color:#721c24;' : 'background:#fff3cd;color:#856404;')">
+                            <option value="En cours de préparation" th:selected="${cmd.statut == 'En cours de préparation'}">En cours</option>
+                            <option value="Expédiée" th:selected="${cmd.statut == 'Expédiée'}">Expédiée</option>
+                            <option value="Livrée" th:selected="${cmd.statut == 'Livrée'}">Livrée</option>
+                            <option value="Annulée" th:selected="${cmd.statut == 'Annulée'}">Annulée</option>
+                        </select>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function showToast() {
+        const t = document.getElementById('toast');
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    if (new URLSearchParams(window.location.search).has('success')) showToast();
+</script>
+</body>
+</html>

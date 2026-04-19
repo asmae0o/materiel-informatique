@@ -331,16 +331,25 @@
             <h2>Welcome back</h2>
             <p class="subtitle">Sign in to your Quantum account</p>
             <div class="auth-error" th:if="${param.loginError != null}">Identifiants incorrects. Réessayez.</div>
-            <form th:action="@{/login}" method="post">
+            <form th:action="@{/login}" method="post" id="loginForm">
+                <input type="hidden" name="redirectTo" id="loginRedirectTo" value="">
                 <div class="auth-group">
                     <label>Username or Email</label>
                     <input type="text" name="username" class="auth-input" placeholder="your username or email" required autofocus>
                 </div>
                 <div class="auth-group">
                     <label>Password</label>
-                    <input type="password" name="password" class="auth-input" placeholder="••••••••" required>
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="loginPassword" class="auth-input" placeholder="••••••••" required style="padding-right:44px;">
+                        <button type="button" onclick="togglePwd('loginPassword','loginEye')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#5e5e63;font-size:16px;padding:0;">
+                            <i id="loginEye" class="far fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="auth-btn">Sign In</button>
+                <button type="submit" class="auth-btn" id="loginSubmitBtn">
+                    <span id="loginBtnText">Sign In</span>
+                    <span id="loginBtnSpinner" style="display:none;"><i class="fas fa-circle-notch fa-spin"></i></span>
+                </button>
             </form>
             <p class="auth-switch">No account? <a onclick="switchModal('loginModal','signupModal')">Create one</a></p>
         </div>
@@ -353,7 +362,7 @@
             <h2>Create account</h2>
             <p class="subtitle">Join Quantum today</p>
             <div class="auth-error" th:if="${signupError}" th:text="${signupError}"></div>
-            <form th:action="@{/signup}" method="post">
+            <form th:action="@{/signup}" method="post" id="signupForm">
                 <div class="auth-group">
                     <label>Full Name</label>
                     <input type="text" name="nom" class="auth-input" placeholder="Your name" required>
@@ -372,13 +381,26 @@
                 </div>
                 <div class="auth-group">
                     <label>Password</label>
-                    <input type="password" name="password" class="auth-input" placeholder="••••••••" required>
+                    <div style="position:relative;">
+                        <input type="password" name="password" id="signupPassword" class="auth-input" placeholder="••••••••" required style="padding-right:44px;">
+                        <button type="button" onclick="togglePwd('signupPassword','signupEye')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#5e5e63;font-size:16px;padding:0;">
+                            <i id="signupEye" class="far fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="auth-group">
                     <label>Confirm Password</label>
-                    <input type="password" name="confirmPassword" class="auth-input" placeholder="••••••••" required>
+                    <div style="position:relative;">
+                        <input type="password" name="confirmPassword" id="signupConfirm" class="auth-input" placeholder="••••••••" required style="padding-right:44px;">
+                        <button type="button" onclick="togglePwd('signupConfirm','signupConfirmEye')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#5e5e63;font-size:16px;padding:0;">
+                            <i id="signupConfirmEye" class="far fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="auth-btn">Create Account</button>
+                <button type="submit" class="auth-btn" id="signupSubmitBtn">
+                    <span id="signupBtnText">Create Account</span>
+                    <span id="signupBtnSpinner" style="display:none;"><i class="fas fa-circle-notch fa-spin"></i></span>
+                </button>
             </form>
             <p class="auth-switch">Already have an account? <a onclick="switchModal('signupModal','loginModal')">Sign in</a></p>
         </div>
@@ -411,6 +433,57 @@
             }
         };
 
+        function togglePwd(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+            else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+        }
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const redirectField = document.getElementById('loginRedirectTo');
+            if (!redirectField.value) redirectField.value = window.location.href;
+            const btn = document.getElementById('loginSubmitBtn');
+            const txt = document.getElementById('loginBtnText');
+            const spin = document.getElementById('loginBtnSpinner');
+            txt.style.display = 'none';
+            spin.style.display = 'inline';
+            btn.disabled = true;
+            try {
+                const res = await fetch(this.action, { method: 'POST', body: new URLSearchParams(new FormData(this)), redirect: 'follow' });
+                if (res.url && res.url.includes('loginError')) {
+                    txt.style.display = 'inline'; spin.style.display = 'none'; btn.disabled = false;
+                    let err = document.querySelector('#loginModal .auth-error');
+                    if (!err) { err = document.createElement('div'); err.className = 'auth-error'; this.before(err); }
+                    err.textContent = 'Identifiants incorrects. Réessayez.';
+                } else {
+                    window.location.href = res.url || '/';
+                }
+            } catch {
+                txt.style.display = 'inline'; spin.style.display = 'none'; btn.disabled = false;
+            }
+        });
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('signupSubmitBtn');
+            const txt = document.getElementById('signupBtnText');
+            const spin = document.getElementById('signupBtnSpinner');
+            txt.style.display = 'none'; spin.style.display = 'inline'; btn.disabled = true;
+            try {
+                const res = await fetch(this.action, { method: 'POST', body: new URLSearchParams(new FormData(this)), redirect: 'follow' });
+                if (res.url && res.url.includes('signupError')) {
+                    txt.style.display = 'inline'; spin.style.display = 'none'; btn.disabled = false;
+                    let err = document.querySelector('#signupModal .auth-error');
+                    if (!err) { err = document.createElement('div'); err.className = 'auth-error'; this.before(err); }
+                    const params = new URL(res.url).searchParams;
+                    err.textContent = params.get('signupError') || 'Une erreur est survenue. Réessayez.';
+                } else {
+                    window.location.href = res.url || '/';
+                }
+            } catch {
+                txt.style.display = 'inline'; spin.style.display = 'none'; btn.disabled = false;
+            }
+        });
         function openModal(id) { document.getElementById(id).classList.add('open'); }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         function switchModal(from, to) { closeModal(from); openModal(to); }
