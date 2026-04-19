@@ -4,7 +4,9 @@ import com.ecommerce.materiel_informatique.model.Produit;
 import com.ecommerce.materiel_informatique.repository.ProduitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List; // TRÈS IMPORTANT : Utilisez java.util.List
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 @Service
 public class ProduitServiceImpl implements ProduitService {
@@ -14,7 +16,9 @@ public class ProduitServiceImpl implements ProduitService {
 
     @Override
     public List<Produit> getAllProduits() {
-        return produitRepository.findAll();
+        // EAGER @ElementCollection causes a JOIN that duplicates rows (one per image).
+        // LinkedHashSet deduplicates while preserving order.
+        return new ArrayList<>(new LinkedHashSet<>(produitRepository.findAll()));
     }
 
     @Override

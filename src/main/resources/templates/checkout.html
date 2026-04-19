@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
-    <title>Secure Checkout | The Gallery</title>
+    <title>Secure Checkout | Quantum</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -42,7 +43,9 @@
 </head>
 <body>
 <div class="navbar">
-    <a th:href="@{/catalogue}" class="logo">The Gallery</a>
+    <a th:href="@{/}" class="logo" style="display: flex; align-items: center;">
+        <img th:src="@{/img/logo.png}" alt="Quantum" style="height: 28px; width: auto;">
+    </a>
     <a th:href="@{/panier}" style="color: var(--text-main); text-decoration: none; font-size: 14px;">Cancel</a>
 </div>
 

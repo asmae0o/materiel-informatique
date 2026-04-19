@@ -1,6 +1,7 @@
 package com.ecommerce.materiel_informatique.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,18 +14,20 @@ public class Produit {
     private String description;
     private double prix;
     private int quantiteStock;
-     // Contiendra par exemple "macbook.png"
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "produit_images", joinColumns = @JoinColumn(name = "produit_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "marque_id")
     private Marque marque;
 
-    // Fixed: Single Categorie, not a List
     @ManyToOne
     @JoinColumn(name = "categorie_id")
     private Categorie categorie;
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -43,7 +46,30 @@ public class Produit {
     public Marque getMarque() { return marque; }
     public void setMarque(Marque marque) { this.marque = marque; }
 
-    // Fixed Getter/Setter name
     public Categorie getCategorie() { return categorie; }
     public void setCategorie(Categorie categorie) { this.categorie = categorie; }
+
+    public List<String> getImageUrls() { return imageUrls; }
+    public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
+
+    public String getPrimaryImage() {
+        return (imageUrls != null && !imageUrls.isEmpty()) ? imageUrls.get(0) : null;
+    }
+
+    public String getImageUrlsJoined() {
+        return (imageUrls != null && !imageUrls.isEmpty()) ? String.join("||" , imageUrls) : "";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Produit)) return false;
+        Produit p = (Produit) o;
+        return id != null && id.equals(p.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }

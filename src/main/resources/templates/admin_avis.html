@@ -1,24 +1,39 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="icon" type="image/png" th:href="@{/img/dark.png}">
     <meta charset="UTF-8">
     <title>Admin | Modération Avis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #f5f5f7; font-family: 'Inter', sans-serif; padding: 40px 10%; margin: 0; }
+        :root { --bg: #f9f9fb; --surface: #ffffff; --text-main: #1a1c1d; --text-muted: #5e5e63; }
+        body { background: var(--bg); font-family: 'Inter', sans-serif; margin: 0; display: flex; min-height: 100vh; }
+        .sidebar { width: 240px; background: var(--bg); border-right: 1px solid rgba(0,0,0,0.04); padding: 30px 0; display: flex; flex-direction: column; }
+        .brand { padding: 0 30px; margin-bottom: 40px; }
+        .brand h2 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .brand span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 30px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; }
+        .nav-item.active { background: var(--surface); color: var(--text-main); font-weight: 600; border-radius: 0 999px 999px 0; margin-right: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .nav-item i { width: 20px; font-size: 16px; }
+        .nav-item:hover:not(.active) { color: var(--text-main); }
+        .bottom-nav { margin-top: auto; }
+        .main { flex: 1; padding: 40px 6%; }
         .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; }
         .avis-card { padding: 20px; border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-back { color: #0071e3; text-decoration: none; font-weight: 600; }
         .btn-delete { background: #ff3b30; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; transition: 0.3s; }
         .btn-delete:hover { background: #d70015; }
     </style>
 </head>
 <body>
-<a th:href="@{/admin/dashboard}" class="btn-back">← Retour au Centre de Contrôle</a>
+<div th:replace="~{fragments/admin_sidebar :: adminSidebar('avis')}"></div>
 
-<h1 style="margin-top: 20px;">💬 Modération des Avis</h1>
-<p style="color: #666;">Consultez et supprimez les avis inappropriés laissés par les clients.</p>
+<div class="main">
+
+<div class="main-header" style="margin-bottom: 40px; margin-top: 10px;">
+    <h1 style="font-size: 40px; font-weight: 700; letter-spacing: -0.04em; margin: 0 0 10px 0;">Reviews Management</h1>
+    <p style="color: var(--text-muted); font-size: 16px; margin: 0; max-width: 600px;">Monitor product feedback and moderate inappropriate customer reviews to maintain quality.</p>
+</div>
 
 <div class="container">
     <div th:each="a : ${avisList}" class="avis-card">
@@ -45,6 +60,7 @@
         <i class="fas fa-check-circle" style="font-size: 2rem; color: #34c759; margin-bottom: 10px;"></i>
         <p>Aucun avis à modérer pour le moment.</p>
     </div>
+</div>
 </div>
 </body>
 </html>
