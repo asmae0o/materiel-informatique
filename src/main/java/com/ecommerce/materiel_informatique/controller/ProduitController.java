@@ -144,8 +144,17 @@ public class ProduitController {
         return "fragments/cart_panel :: cartPanelContent";
     }
 
+    @GetMapping("/cart/count")
+    @ResponseBody
+    public int cartCount(HttpSession session) {
+        Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
+        if (cart == null || cart.isEmpty()) return 0;
+        return cart.values().stream().mapToInt(CartItem::getQuantite).sum();
+    }
+
     @PostMapping("/cart/add/{id}")
-    public String addToCart(@PathVariable Long id, HttpSession session) {
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<String> addToCart(@PathVariable Long id, HttpSession session) {
         Map<Long, CartItem> cart = (Map<Long, CartItem>) session.getAttribute("cart");
         if (cart == null) {
             cart = new HashMap<>();
@@ -159,7 +168,7 @@ public class ProduitController {
                 cart.put(id, new CartItem(p, 1));
             }
         }
-        return "redirect:/?cartSuccess";
+        return org.springframework.http.ResponseEntity.ok("ok");
     }
 
     @GetMapping("/cart/remove/{id}")
@@ -560,12 +569,12 @@ public class ProduitController {
     // ==========================================
     @GetMapping("/login")
     public String showLoginForm() {
-        return "login"; // Va chercher le fichier login.html
+        return "redirect:/";
     }
 
     @GetMapping("/signup")
     public String showSignupForm() {
-        return "signup";
+        return "redirect:/";
     }
 
     @PostMapping("/signup")
@@ -582,17 +591,17 @@ public class ProduitController {
 
         if (cleanUsername.isEmpty() || password == null || password.isBlank()) {
             redirectAttributes.addFlashAttribute("signupError", "Nom d'utilisateur et mot de passe sont obligatoires.");
-            return "redirect:/signup";
+            return "redirect:/?signupError";
         }
 
         if (!password.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("signupError", "Les mots de passe ne correspondent pas.");
-            return "redirect:/signup";
+            return "redirect:/?signupError";
         }
 
         if (appUserRepository.existsByUsername(cleanUsername)) {
             redirectAttributes.addFlashAttribute("signupError", "Ce nom d'utilisateur existe déjà.");
-            return "redirect:/signup";
+            return "redirect:/?signupError";
         }
 
         AppUser newUser = new AppUser(cleanUsername, passwordEncoder.encode(password), "CLIENT");
